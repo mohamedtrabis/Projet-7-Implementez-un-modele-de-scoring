@@ -1,13 +1,8 @@
 import streamlit as st
-#import matplotlib.pyplot as plt
-import seaborn as sns
 import pandas as pd
 import numpy as np
 import pickle
 import streamlit.components.v1 as components
-
-from sklearn.feature_extraction.text import TfidfVectorizer
-
 import shap
 
 from sklearn.manifold import TSNE
@@ -50,14 +45,14 @@ from sklearn.svm import SVC
 from sklearn.datasets import make_classification
 from sklearn.impute import SimpleImputer
 from sklearn.compose import make_column_transformer, make_column_selector, ColumnTransformer
+import lightgbm as lgbm
+from IPython.core.display import display, HTML
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, f1_score, mean_squared_error, mean_absolute_percentage_error
 
-import lightgbm as lgbm
 
 from PIL import Image
-from IPython.core.display import display, HTML
 
 st.set_page_config(
     page_title="Home Credit",
@@ -66,8 +61,11 @@ st.set_page_config(
     page_icon = 'Image/logo_home_credit.gif',
 )
 
-with open('style.css') as f:
-    st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+def local_css(file_name):
+    with open(file_name) as f:
+        st.markdown('<style>{}</style>'.format(f.read()), unsafe_allow_html=True)
+
+local_css("style.css")
 
 
 image_logo = Image.open("Image/home credit.jpg")
