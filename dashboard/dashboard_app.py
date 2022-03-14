@@ -2,6 +2,7 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+import numpy as np
 import pickle
 import streamlit.components.v1 as components
 
@@ -22,7 +23,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
-from xgboost import XGBRegressor, XGBClassifier
+from xgboost import XGBClassifier
 from xgboost import plot_importance
 
 import lightgbm as lgbm
@@ -59,11 +60,24 @@ from PIL import Image
 from IPython.core.display import display, HTML
 
 st.set_page_config(
-    page_title="Dashbord App",
+    page_title="Home Credit",
     layout="wide",
     initial_sidebar_state="expanded",
-    page_icon = 'images/energy.png',
+    page_icon = 'Image/logo_home_credit.gif',
 )
+
+with open('style.css') as f:
+    st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+
+image_logo = Image.open("Image/home credit.jpg")
+newsize = (300, 168)
+
+left, mid ,right = st.columns([1,1, 1])
+
+with mid:
+    image_logo = image_logo.resize(newsize)
+    st.image(image_logo, '')
 
 
 # image = Image.open("images/da.png")
@@ -71,73 +85,12 @@ st.set_page_config(
 # image = image.resize(newsize)
 # st.image(image,'')
 
-st.subheader("Dashbord App")
+st.subheader("Dashbord Application 📈")
 
 # Create a page dropdown
 page = st.sidebar.radio("Choisissez votre Application",
                         ["LightGBM", "XGBoost"])
 
-# Style CSS
-st.write("""
-<style>
-
-table {
-font-size:13px !important;
-border:2px solid #6495ed;
-border-collapse:collapse;
-margin:auto;
-width: auto;
-height: auto;
-}
-
-th {
-font-family:monospace bold;
-border:1px dotted #6495ed;
-background-color:#EFF6FF;
-text-align:center;
-}
-
-td {
-font-family:sans-serif;
-font-size:95%;
-border:1px solid #6495ed;
-text-align:left;
-}
-
-.url {
-  height:60px;
-  margin-left:auto;
-  margin-right:auto;
-  display:block;
-  -webkit-transform: scale(1.05);
-  -moz-transform: scale(1.05);
-  -o-transform: scale(1.05);
-  transform: scale(1.05);
-
-  -webkit-transition: all 700ms ease-in-out;
-  -moz-transition: all 700ms ease-in-out;
-  -o-transition: all 700ms ease-in-out;
-  transition: all 700ms ease-in-out;
-}
-
-td:hover {
-  font-family:sans-serif;
-  /*font-weight: bolder; */
-  font-size:120%;
-  background-color: #f4f4f4;
-  }
-
-
-td:hover .url {
-  /*-ms-transform: scale(1) translate(0px);*/ /* IE 9 */
-  /*-webkit-transform: scale(1) translate(0px);*/ /* Safari 3-8 */
-  /*transform: scale(1);*/ /* (200% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
-  width:auto;
-  height:250px;
-}
-
-</style>
-""", unsafe_allow_html=True)
 
 def caract_entree():
     SK_ID_CURR = st.text_input("Entrer le code client", 100007)
@@ -151,9 +104,6 @@ def caract_entree():
 
 
 # --------------------------------------------------------------------------------------------------------------------
-
-input_df = caract_entree()
-
 
 def path_to_image_html(path):
     '''
@@ -189,13 +139,18 @@ def get_explainer(df, model):
 # ----------------------------------------------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------------------------------------------
-def get_explainer1(df, model):
-    explainer1 = shap.TreeExplainer(model)
-    shap_values1 = explainer1.shap_values(df.iloc[:, 2:])
-    return explainer1, shap_values1
+#@st.cache(hash_funcs={XGBClassifier: id})
+def get_explainer1():
+    explainer = shap.TreeExplainer(xgb_clf)
+    shap_values = explainer.shap_values(df_train1.iloc[:, 2:])
+    return explainer, shap_values
 
 
 # ----------------------------------------------------------------------------------------------------------------
+left_, mid_ ,right_ = st.columns([1,1, 1])
+
+with mid_:
+    input_df = caract_entree()
 
 # Transformer les données d'entrée en données adaptées à notre modèle
 # importer la base de données
@@ -209,12 +164,15 @@ donnee_entree = donnee_entree[:1]
 donnee_entree['SK_ID_CURR'] = donnee_entree['SK_ID_CURR'].apply(str)
 
 var_code = donnee_entree['SK_ID_CURR'][0]
-col = ['SK_ID_CURR', 'NAME_CONTRACT_TYPE', 'CODE_GENDER',
+
+df_train['AGE'] = abs(np.around(df_train['DAYS_BIRTH']/365,2))
+df_train['YEARS_EMPLOYED'] = abs(np.around(df_train['DAYS_EMPLOYED']/365,2))
+
+col = ['SK_ID_CURR', 'NAME_CONTRACT_TYPE', 'CODE_GENDER','AGE',
        'FLAG_OWN_CAR', 'FLAG_OWN_REALTY', 'CNT_CHILDREN', 'AMT_INCOME_TOTAL',
-       'AMT_CREDIT', 'AMT_ANNUITY', 'AMT_GOODS_PRICE', 'NAME_TYPE_SUITE',
-       'NAME_INCOME_TYPE', 'NAME_EDUCATION_TYPE', 'NAME_FAMILY_STATUS',
-       'REGION_POPULATION_RELATIVE', 'DAYS_BIRTH', 'DAYS_EMPLOYED',
-       'DAYS_REGISTRATION', 'DAYS_ID_PUBLISH']
+       'AMT_CREDIT', 'AMT_ANNUITY', 'AMT_GOODS_PRICE', 'YEARS_EMPLOYED',
+       'NAME_INCOME_TYPE', 'NAME_EDUCATION_TYPE', 'NAME_FAMILY_STATUS']
+
 donnee_sortie = df_train[col].copy()
 
 var_code = donnee_entree['SK_ID_CURR'][0]
@@ -222,8 +180,11 @@ var_code = donnee_entree['SK_ID_CURR'][0]
 donnee_sortie['SK_ID_CURR'] = donnee_sortie['SK_ID_CURR'].apply(str)
 donnee_sortie = donnee_sortie[(donnee_sortie['SK_ID_CURR'] == var_code)]
 
-st.write(HTML(donnee_sortie.to_html(index=False, escape=False, )))
+#st.write(HTML(donnee_sortie.to_html(index=False, escape=False, )))
+st.table(donnee_sortie.assign(hack='').set_index('hack'))
+#st.dataframe(donnee_sortie.assign(hack='').set_index('hack'))
 
+#st.dataframe(donnee_sortie)
 # -------------------------------------------------------------------------------------------------------------
 if page == "LightGBM":
     # Méthode Undersampling
@@ -241,9 +202,6 @@ if page == "LightGBM":
     target_0_under = target_0.sample(target_count_1)
     test_under = pd.concat([target_0_under, target_1], axis=0)
 
-    print('Random under-sampling:')
-    print(test_under.TARGET.value_counts())
-
     # Définir X et y
     X = test_under.iloc[:, 2:]
     y = test_under.iloc[:, 1]
@@ -258,7 +216,7 @@ if page == "LightGBM":
 
     # view accuracy
     accuracy = accuracy_score(y_pred, y_test)
-    st.write('LightGBM Model accuracy score: {0:0.4f}'.format(accuracy_score(y_test, y_pred)))
+    #st.write('LightGBM Model accuracy score: {0:0.4f}'.format(accuracy_score(y_test, y_pred)))
 
     # Prediction resultat
     donnee_entree['SK_ID_CURR'] = donnee_entree['SK_ID_CURR'].apply(str)
@@ -268,11 +226,26 @@ if page == "LightGBM":
     pred_client = df_train1[df_train1['SK_ID_CURR'] == var_code]
 
     tab = ['No Default', 'Default']
-    y_pred = lgbm_clf.predict(pred_client.iloc[:, 2:])
-    st.write('TARGET du client prédit: ', tab[y_pred[0]])
+    y_pred = lgbm_clf.predict_proba(pred_client.iloc[:, 2:])
+    risk = "{:,.0f}".format(y_pred[0][1]*100)
+    pred_0 = "{:,.0f}".format(y_pred[0][0]*100)
+    #st.write('TARGET du client prédit: ', tab[y_pred[0]])
+    st.write(y_pred)
+
+
+    prediction_0, prediction_1, prediction_3 = st.columns(3)
+
+    prediction_0.metric(label='Prédiction remboursement (min 80%)',value=pred_0+str('%'),delta=int(pred_0)-80)
+    prediction_1.metric(label='Risque de défaut de paiement (min 30%)',value=risk+str('%'),delta=30-int(risk))
+
+    #st.write('Risque de défaut de paiement : ', risk + str('%'))
+    if((y_pred[0][1])<0.5):
+        st.markdown('''<div class='box'>'''+'Risque de défaut de paiement : </div><div class="box" id="flag_green">'''+risk+str('%')+'''</div><div class='box'><img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQy1EjMg5nWNx1f7Fq8OwyXIc_Zgcw7ho90tA91zVAfEST6UnwggqOicekl4gxwuvOLk_M&usqp=CAU', height=40/></div>''', unsafe_allow_html=True)
+    else:
+        st.markdown('''<div class='box'>''' + 'Risque de défaut de paieme   nt : </div><div class="box" id="flag_red">''' + risk + str('%') + '''</div><div class='box'><img src='https://americanmigrainefoundation.org/wp-content/uploads/2017/03/iStock_45096094_SMALL.jpg', height=40/></div>''',unsafe_allow_html=True)
+
 
     # Initialize SHAP Tree explainer
-
     explainer, shap_values = get_explainer(df_train1, lgbm_clf)
 
     # explainer = shap.TreeExplainer(lgbm_clf, model_output='raw')
@@ -280,10 +253,6 @@ if page == "LightGBM":
 
     # Baseline value
     expected_value = explainer.expected_value
-    if isinstance(expected_value, list):
-        expected_value = expected_value[1]
-    print(f"Explainer expected value: {expected_value}")
-
 
     # visualize the first prediction's explanation (use matplotlib=True to avoid Javascript)
     def st_shap(plot, height=None):
@@ -292,30 +261,34 @@ if page == "LightGBM":
 
 
     index_client = df_train1[df_train1['SK_ID_CURR'] == var_code].index.values[0]
+
+    col1, col2 = st.columns([1, 1])
+
     st.markdown("<h2 style='text-align: center; color: black;'>Force plot</h2>", unsafe_allow_html=True)
     # force_plot
     st_shap(
-        shap.force_plot(explainer.expected_value[0], shap_values[0][index_client], df_train1.iloc[index_client, 2:]))
-
-    st.set_option('deprecation.showPyplotGlobalUse', False)
-
-    col1, col2 = st.columns([1, 1])
+        shap.force_plot(explainer.expected_value[1], shap_values[1][index_client], df_train1.iloc[index_client, 2:]))
 
     with col1:
         st.markdown("<h2 style='text-align: center; color: black;'>Decision plot</h2>", unsafe_allow_html=True)
         # decision_plot
-        decision = shap.decision_plot(base_value=expected_value,
-                                      shap_values=shap_values[0][index_client],
+        decision = shap.decision_plot(base_value=explainer.expected_value[1],
+                                      shap_values=shap_values[1][index_client],
                                       features=df_train1.iloc[index_client, 2:],
                                       feature_names=X_test.columns.tolist(),
                                       link='logit')
 
-        st.pyplot(decision)
+        st.pyplot(decision, unsafe_allow_html=False)
         # st.pyplot(fig,bbox_inches='tight',dpi=300,pad_inches=0)
     with col2:
         st.markdown("<h2 style='text-align: center; color: black;'>Summary plot</h2>", unsafe_allow_html=True)
         # Summarize the effects of all the features
         st.pyplot(shap.summary_plot(shap_values, pred_client.iloc[:, 2:]))
+
+    st.set_option('deprecation.showPyplotGlobalUse', False)
+
+    #explainer = shap.Explainer(xgb_clf, X_train)
+    #st.pyplot(shap.plots.waterfall(shap_values[0]))
 # --------------------------------------------------------------------------------------------------------------------
 if page == "XGBoost":
     # Importer le modèle entrainé lightGBM
@@ -332,7 +305,7 @@ if page == "XGBoost":
 
     # view accuracy
     accuracy = accuracy_score(y_pred, y_test)
-    st.write('LightGBM Model accuracy score: {0:0.4f}'.format(accuracy_score(y_test, y_pred)))
+    #st.write('XGBoost Model accuracy score: {0:0.4f}'.format(accuracy_score(y_test, y_pred)))
 
     # Prediction resultat
     donnee_entree['SK_ID_CURR'] = donnee_entree['SK_ID_CURR'].apply(str)
@@ -342,20 +315,30 @@ if page == "XGBoost":
     pred_client = df_train1[df_train1['SK_ID_CURR'] == var_code]
 
     tab = ['No Default', 'Default']
-    y_pred = xgb_clf.predict(pred_client.iloc[:, 2:])
-    st.write('TARGET du client prédit: ', tab[y_pred[0]])
+    y_pred = xgb_clf.predict_proba(pred_client.iloc[:, 2:])
+    risk = "{:,.0f}".format(y_pred[0][1] * 100)
+    pred_0 = "{:,.0f}".format(y_pred[0][0]*100)
+    # st.write('TARGET du client prédit: ', tab[y_pred[0]])
+    st.write(y_pred)
+
+    prediction_0, prediction_1, prediction_3 = st.columns(3)
+    
+    prediction_0.metric(label='Prédiction remboursement (min 80%)',value=pred_0+str('%'),delta=int(pred_0)-80)
+    prediction_1.metric(label='Risque de défaut de paiement (min 30%)',value=risk+str('%'),delta=30-int(risk))
+
+    # st.write('Risque de défaut de paiement : ', risk + str('%'))
+    if((y_pred[0][1]*100)<50):
+        st.markdown('''<div class='box'>'''+'Risque de défaut de paiement : </div><div class="box" id="flag_green">'''+risk+str('%')+'''</div><div class='box'><img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQy1EjMg5nWNx1f7Fq8OwyXIc_Zgcw7ho90tA91zVAfEST6UnwggqOicekl4gxwuvOLk_M&usqp=CAU', height=40/></div>''', unsafe_allow_html=True)
+    else:
+        st.markdown('''<div class='box'>''' + 'Risque de défaut de paiement : </div><div class="box" id="flag_red">''' + risk + str('%') + '''</div><div class='box'><img src='https://americanmigrainefoundation.org/wp-content/uploads/2017/03/iStock_45096094_SMALL.jpg', height=40/></div>''',unsafe_allow_html=True)
 
     # Initialize SHAP Tree explainer
-    # explainer1 = shap.TreeExplainer(xgb_clf)
-    # shap_values1 = explainer1.shap_values(df_train1.iloc[:, 2:])
-    explainer1, shap_values1 = get_explainer1(df_train1, xgb_clf)
+    explainer = shap.TreeExplainer(xgb_clf)
+    shap_values = explainer.shap_values(df_train1.iloc[:, 2:])
+    #explainer, shap_values = get_explainer1()
 
     # Baseline value
-    expected_value = explainer1.expected_value
-    if isinstance(expected_value, list):
-        expected_value = expected_value[1]
-    print(f"Explainer expected value: {expected_value}")
-
+    expected_value = explainer.expected_value
 
     # visualize the first prediction's explanation (use matplotlib=True to avoid Javascript)
     def st_shap(plot, height=None):
@@ -366,12 +349,24 @@ if page == "XGBoost":
     index_client = df_train1[df_train1['SK_ID_CURR'] == var_code].index.values[0]
     st.markdown("<h2 style='text-align: center; color: black;'>Force plot</h2>", unsafe_allow_html=True)
     # force_plot
-    st_shap(shap.force_plot(explainer1.expected_value,
-                            shap_values1[index_client], features=df_train1.iloc[index_client, 2:],
-                            feature_names=X_test.columns[0:20],
+    st_shap(shap.force_plot(explainer.expected_value,
+                            shap_values[index_client], features=df_train1.iloc[index_client, 2:],
+                            #feature_names=df_train1.columns[0:20],
                             show=False,
                             # plot_cmap=['#77dd77', '#f99191']
                             ))
+
+    col1, col2 = st.columns([1, 1])
+
+    with col1:
+        #st.pyplot(shap.plots.waterfall(shap_values1[0]))
+
+        st.markdown("<h2 style='text-align: center; color: black;'>Summary plot</h2>", unsafe_allow_html=True)
+        # Summarize the effects of all the features
+        st.pyplot(shap.summary_plot(shap_values, df_train1.iloc[:, 2:]))
+    with col2:
+        st.markdown("<h2 style='text-align: center; color: black;'>Waterfall legacy</h2>", unsafe_allow_html=True)
+        st.pyplot(shap.plots._waterfall.waterfall_legacy(expected_value, shap_values[index_client]))
 
     # st.set_option('deprecation.showPyplotGlobalUse', False)
 
