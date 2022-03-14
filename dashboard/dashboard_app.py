@@ -1,5 +1,5 @@
 import streamlit as st
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import numpy as np
@@ -154,8 +154,8 @@ with mid_:
 
 # Transformer les données d'entrée en données adaptées à notre modèle
 # importer la base de données
-df_train1 = pd.read_csv('../df_test.csv')
-df_train = pd.read_csv('../df_train_.csv')
+df_train1 = pd.read_csv('../db/df_train1_2000.csv')
+df_train = pd.read_csv('../db/df_train_2000.csv')
 
 donnee_entree = pd.concat([input_df, df_train1])
 
@@ -322,7 +322,7 @@ if page == "XGBoost":
     st.write(y_pred)
 
     prediction_0, prediction_1, prediction_3 = st.columns(3)
-    
+
     prediction_0.metric(label='Prédiction remboursement (min 80%)',value=pred_0+str('%'),delta=int(pred_0)-80)
     prediction_1.metric(label='Risque de défaut de paiement (min 30%)',value=risk+str('%'),delta=30-int(risk))
 
