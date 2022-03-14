@@ -61,11 +61,113 @@ st.set_page_config(
     page_icon = 'Image/logo_home_credit.gif',
 )
 
-def local_css(file_name):
-    with open(file_name) as f:
-        st.markdown('<style>{}</style>'.format(f.read()), unsafe_allow_html=True)
+st.write("""
+<style>
 
-local_css("style.css")
+table {
+table-layout: auto;
+font-size:12px !important;
+border:2px solid #6495ed;
+border-collapse:collapse;
+margin:auto;
+width: auto;
+height: auto;
+}
+
+th {
+font-family:monospace bold;
+border:1px dotted #6495ed;
+background-color:#EFF6FF;
+text-align:center;
+}
+
+td {
+font-family:sans-serif;
+font-size:95%;
+border:1px solid #6495ed;
+text-align:left;
+}
+
+.url {
+  height:60px;
+  margin-left:auto;
+  margin-right:auto;
+  display:block;
+  -webkit-transform: scale(1.05);
+  -moz-transform: scale(1.05);
+  -o-transform: scale(1.05);
+  transform: scale(1.05);
+
+  -webkit-transition: all 700ms ease-in-out;
+  -moz-transition: all 700ms ease-in-out;
+  -o-transition: all 700ms ease-in-out;
+  transition: all 700ms ease-in-out;
+}
+
+td:hover {
+  font-family:sans-serif;
+  /*font-weight: bolder; */
+  font-size:120%;
+  background-color: #f4f4f4;
+  }
+
+
+td:hover .url {
+  /*-ms-transform: scale(1) translate(0px);*/ /* IE 9 */
+  /*-webkit-transform: scale(1) translate(0px);*/ /* Safari 3-8 */
+  /*transform: scale(1);*/ /* (200% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
+  width:auto;
+  height:250px;
+}
+
+.box {
+   display: inline-block;
+   font-weight: bolder;
+}
+
+#flag_green {
+background-color: green;
+position: relative;
+left: 3px;
+font-weight: bolder;
+color:white;
+width:45px;
+text-align: center;
+}
+
+#flag_red {
+background-color: red;
+position: relative;
+left: 3px;
+font-weight: bolder;
+color:white;
+width:45px;
+text-align: center;
+}
+
+#sortie{
+width:300px;
+}
+
+div.css-keje6w{
+border:2px solid #CAC8CA;
+}
+
+h2{
+background-color: #FEF8FD;
+border-bottom:2px solid #CAC8CA;
+}
+
+h2#force-plot{
+background-color: #FEF8FD;
+border:2px solid #CAC8CA;
+}
+
+iframe{
+border:2px solid #CAC8CA;
+}
+</style>
+""", unsafe_allow_html=True)
 
 
 image_logo = Image.open("Image/home credit.jpg")
