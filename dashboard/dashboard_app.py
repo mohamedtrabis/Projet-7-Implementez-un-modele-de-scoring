@@ -181,10 +181,11 @@ donnee_sortie = donnee_sortie[(donnee_sortie['SK_ID_CURR'] == var_code)]
 #st.write(HTML(donnee_sortie.to_html(index=False, escape=False, )))
 st.table(donnee_sortie.assign(hack='').set_index('hack'))
 #st.dataframe(donnee_sortie.assign(hack='').set_index('hack'))
-
+st.set_option('deprecation.showPyplotGlobalUse', False)
 #st.dataframe(donnee_sortie)
 # -------------------------------------------------------------------------------------------------------------
 if page == "LightGBM":
+    st.set_option('deprecation.showPyplotGlobalUse', False)
     # Méthode Undersampling
 
     # nombre de classes
@@ -289,6 +290,7 @@ if page == "LightGBM":
     #st.pyplot(shap.plots.waterfall(shap_values[0]))
 # --------------------------------------------------------------------------------------------------------------------
 if page == "XGBoost":
+    st.set_option('deprecation.showPyplotGlobalUse', False)
     # Importer le modèle entrainé lightGBM
     xgb_clf = pickle.load(open('xgb_clf.pkl', 'rb'))
 
