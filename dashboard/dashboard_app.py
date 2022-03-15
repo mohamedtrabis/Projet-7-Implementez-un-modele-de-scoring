@@ -207,7 +207,7 @@ if page == "LightGBM":
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=15, stratify=y)
 
     # Importer le modèle entrainé lightGBM
-    lgbm_clf = pickle.load(open('../lgbm_clf.pkl', 'rb'))
+    lgbm_clf = pickle.load(open('lgbm_clf.pkl', 'rb'))
 
     # Prédire le résultat sur les données X_test
     y_pred = lgbm_clf.predict(X_test)
@@ -290,7 +290,7 @@ if page == "LightGBM":
 # --------------------------------------------------------------------------------------------------------------------
 if page == "XGBoost":
     # Importer le modèle entrainé lightGBM
-    xgb_clf = pickle.load(open('../xgb_clf.pkl', 'rb'))
+    xgb_clf = pickle.load(open('xgb_clf.pkl', 'rb'))
 
     # Définir X et y
     X = df_train1.iloc[:, 2:]
