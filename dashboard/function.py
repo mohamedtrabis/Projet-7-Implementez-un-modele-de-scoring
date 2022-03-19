@@ -55,9 +55,12 @@ from IPython.core.display import display, HTML
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, f1_score, mean_squared_error, mean_absolute_percentage_error
 
+from scipy.stats.kde import gaussian_kde
+import st_state_patch
+
 from PIL import Image
 
-@st.cache(suppress_st_warning=True)
+#@st.cache(suppress_st_warning=True)
 def local_css(file_name):
     with open(file_name) as f:
         st.markdown('<style>{}</style>'.format(f.read()), unsafe_allow_html=True)
@@ -103,7 +106,6 @@ def path_to_image_url(path):
 
     return '<div class ="image" ><img class="url" src="' + path + '""/></div>'
 
-
 # ----------------------------------------------------------------------------------------------------------------
 @st.cache(suppress_st_warning=True)
 def get_explainer(df, model):
@@ -124,31 +126,48 @@ def st_shap(plot, height=None):
     components.html(shap_html, height=height)
 # ----------------------------------------------------------------------------------------------------------------
 # Plot distribution of multiple features, with TARGET = 1/0 on the same graph
-def plot_distribution_comp(var, id_client, nrow=2):
+def plot_distribution_comp(var, id_client, nrow=2, ncol=2):
     i = 0
-    t1 = df_train.loc[df_train['TARGET'] != 0]
-    t0 = df_train.loc[df_train['TARGET'] == 0]
+    t1 = df_train1.loc[df_train1['TARGET'] != 0]
+    t0 = df_train1.loc[df_train1['TARGET'] == 0]
 
     sns.set_style('whitegrid')
     plt.figure()
-    fig, ax = plt.subplots(nrow, 2, figsize=(12, 6 * nrow))
+    fig, ax = plt.subplots(nrow, 1, figsize=(12, 3 * nrow))
 
     for feature in var:
+        sns.set_style("dark")
         i += 1
-        plt.subplot(nrow, 2, i)
-        sns.kdeplot(t1[feature], bw_adjust=0.5, label="TARGET = 1")
-        sns.kdeplot(t0[feature], bw_adjust=0.5, label="TARGET = 0")
-        plt.ylabel('Density plot', fontsize=12)
-        plt.xlabel(feature, fontsize=12)
+        plt.subplot(nrow, ncol, i)
+        sns.kdeplot(t1[feature], bw_adjust=0.5, label="TARGET = 1", color='red', shade=True)
+        sns.kdeplot(t0[feature], bw_adjust=0.5, label="TARGET = 0", color='blue', shade=True)
+        plt.ylabel('Density plot', fontsize=8)
+        plt.xlabel(feature, fontsize=8)
         locs, labels = plt.xticks()
-        plt.tick_params(axis='both', which='major', labelsize=12)
-        client = df_train[feature][df_train['SK_ID_CURR'] == id_client].values[0]
-        var = (df_train[feature][df_train[feature] == id_client].count()) / ((df_train[feature].count()))
-        plt.text(client*1.01, var, 'Client %s' % feature, fontsize=11)
-        plt.axvline(client, c='red')
-        plt.legend()
+        plt.tick_params(axis='both', which='major', labelsize=10)
+        client = df_train1[feature][df_train1['SK_ID_CURR'] == str(id_client)].values[0]
+        var = (df_train1[feature][df_train1[feature] == str(id_client)].count()) / ((df_train1[feature].count()))
+        #plt.text(client, var, int(client), fontsize=8)
+        #plt.axvline(client, c='black')
+        #plt.title(feature, fontsize=9)
+        plt.legend(fontsize=6)
+
+        density = gaussian_kde(df_train1[feature])
+        max = density(df_train1[feature]).max()
+        max_features = df_train1[feature].max()
+        x = client
+        y = density(x)
+
+        plt.annotate(var_code+'\n'+str(np.ceil(x)), xy=(x, y), xytext=(max_features/1.2, max* 0.5), fontsize=8,
+                     #arrowprops=dict(facecolor='green', shrink=0.01),
+                     #bbox=dict(boxstyle="round4,pad=.5", fc="0.8"),
+                     #arrowprops=dict(arrowstyle="->", connectionstyle="angle,angleA=0,angleB=80,rad=20")
+                     bbox=dict(boxstyle ="round", fc ="0.8"),
+                     arrowprops=dict(arrowstyle = "->",connectionstyle = "angle, angleA = 0, angleB = 90, rad = 5",color='black')
+                     )
+
     st.pyplot(fig)
 # ----------------------------------------------------------------------------------------------------------------
 @st.cache(allow_output_mutation=True)
-def try_read_df(file1, file2):
-    return pd.read_csv(file1), pd.read_csv(file2)
+def try_read_df(file):
+    return pd.read_csv(file)
