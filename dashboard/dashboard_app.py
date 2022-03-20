@@ -44,7 +44,7 @@ st.subheader("Dashbord Application 📈")
 
 #file = '../df_train1.csv'
 #file2 = '../Data/application_train.csv'
-file = '../db/df_train1_2000.csv'
+file = 'db/df_train1_2000.csv'
 #file2 = '../db/df_train_2000.csv'
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
@@ -118,7 +118,7 @@ if len(pred_client)!=0:
     st.write(df_train1.shape)
 
     # Importer le modèle entrainé lightGBM
-    lgbm_clf = pickle.load(open('../lgbm_clf.pkl', 'rb'))
+    lgbm_clf = pickle.load(open('lgbm_clf.pkl', 'rb'))
 
     # Prédire le résultat sur les données X_test
     y_pred = lgbm_clf.predict(X_test)
