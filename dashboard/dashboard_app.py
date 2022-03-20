@@ -161,7 +161,7 @@ if len(pred_client)!=0:
 
     st.markdown("<h2 style='text-align: center; color: black;'>Force plot</h2>", unsafe_allow_html=True)
     # force_plot
-    #st_shap(shap.force_plot(explainer.expected_value[1], shap_values[1][index_client], df_train1.iloc[index_client, 2:]))
+    st_shap(shap.force_plot(explainer.expected_value[1], shap_values[1][index_client], df_train1.iloc[index_client, 2:]))
 
 
     col1, col2 = st.columns([1, 1])
@@ -174,12 +174,12 @@ if len(pred_client)!=0:
                                       feature_names=X_test.columns.tolist(),
                                       link='logit')
 
-        #st.pyplot(decision, unsafe_allow_html=False)
+        st.pyplot(decision, unsafe_allow_html=False)
         # st.pyplot(fig,bbox_inches='tight',dpi=300,pad_inches=0)
     with col2:
         st.markdown("<h2 style='text-align: center; color: black;'>Summary plot</h2>", unsafe_allow_html=True)
         # Summarize the effects of all the features
-        #st.pyplot(shap.summary_plot(shap_values, pred_client.iloc[:, 2:]))
+        st.pyplot(shap.summary_plot(shap_values, pred_client.iloc[:, 2:]))
 
     st.markdown("<h2 style='text-align: center; color: black;'>Analyse Client : "+var_code+"</h2>", unsafe_allow_html=True)
     # Create a list of possible values and multiselect menu with them in it.
