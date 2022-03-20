@@ -1,8 +1,7 @@
 exec(open("function.py").read())
-pd.options.display.float_format = '{:,.2f}'.format
 
-import st_state_patch
-s = st.session_state
+#import st_state_patch
+#s = st.session_state
 
 
 from PIL import Image
@@ -14,8 +13,7 @@ st.set_page_config(
 )
 
 local_css("style.css")
-
-
+pd.options.display.float_format = '{:,.2f}'.format
 
 image_logo = Image.open("Image/home credit.jpg")
 newsize = (300, 168)
@@ -211,14 +209,14 @@ if len(pred_client)!=0:
     # all forms end with a submit button, that is how the user can trigger
     submit = my_form.form_submit_button(label="submit")
     #st.write(var_code)
-    if s:
-        if submit :
-            if (len(col_selected) == 0):
-                st.write('Please Select Features')
-            elif (len(col_selected)<4) :
-                plot_distribution_comp(col_selected, int(var_code), nrow=1, ncol=len(col_selected))
-            elif (len(col_selected)>0) :
-                plot_distribution_comp(col_selected, int(var_code), nrow=int(np.ceil(len(col_selected)/3)), ncol=3)
+
+    if submit :
+        if (len(col_selected) == 0):
+            st.write('Please Select Features')
+        elif (len(col_selected)<4) :
+            plot_distribution_comp(col_selected, int(var_code), nrow=1, ncol=len(col_selected))
+        elif (len(col_selected)>0) :
+            plot_distribution_comp(col_selected, int(var_code), nrow=int(np.ceil(len(col_selected)/3)), ncol=3)
 
     #fig = px.density_contour(df_train[['AGE']], x='AGE')
     #fig = px.ecdf(df_train, x="AGE", color="TARGET", markers=True, lines=False, marginal="histogram", title='Life expectancy in Canada')
