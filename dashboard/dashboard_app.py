@@ -44,7 +44,7 @@ st.subheader("Dashbord Application 📈")
 
 #file = '../df_train1.csv'
 #file2 = '../Data/application_train.csv'
-file = 'db/df_train1_2000.csv'
+file = '../db/df_train1_2000.csv'
 #file2 = '../db/df_train_2000.csv'
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
@@ -118,7 +118,7 @@ if len(pred_client)!=0:
     st.write(df_train1.shape)
 
     # Importer le modèle entrainé lightGBM
-    lgbm_clf = pickle.load(open('lgbm_clf.pkl', 'rb'))
+    lgbm_clf = pickle.load(open('../lgbm_clf.pkl', 'rb'))
 
     # Prédire le résultat sur les données X_test
     y_pred = lgbm_clf.predict(X_test)
@@ -161,7 +161,7 @@ if len(pred_client)!=0:
 
     st.markdown("<h2 style='text-align: center; color: black;'>Force plot</h2>", unsafe_allow_html=True)
     # force_plot
-    st_shap(shap.force_plot(explainer.expected_value[1], shap_values[1][index_client], df_train1.iloc[index_client, 2:]))
+    st_shap(shap.force_plot(explainer.expected_value[1], shap_values[1][index_client], df_train1.iloc[index_client, 2:-2]))
 
 
     col1, col2 = st.columns([1, 1])
@@ -179,7 +179,7 @@ if len(pred_client)!=0:
     with col2:
         st.markdown("<h2 style='text-align: center; color: black;'>Summary plot</h2>", unsafe_allow_html=True)
         # Summarize the effects of all the features
-        st.pyplot(shap.summary_plot(shap_values, pred_client.iloc[:, 2:]))
+        st.pyplot(shap.summary_plot(shap_values, pred_client.iloc[:, 2:-2]))
 
     st.markdown("<h2 style='text-align: center; color: black;'>Analyse Client : "+var_code+"</h2>", unsafe_allow_html=True)
     # Create a list of possible values and multiselect menu with them in it.
