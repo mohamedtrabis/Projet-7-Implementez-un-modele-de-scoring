@@ -1,13 +1,12 @@
 <style>
 
 table {
-table-layout: auto;
-font-size:12px !important;
+font-size:8px !important;
 border:2px solid #6495ed;
 border-collapse:collapse;
 margin:auto;
 width: auto;
-height: auto;
+
 }
 
 th {
@@ -15,13 +14,14 @@ font-family:monospace bold;
 border:1px dotted #6495ed;
 background-color:#EFF6FF;
 text-align:center;
+font-size:12px;
 }
 
 td {
 font-family:sans-serif;
-font-size:95%;
+font-size:11px;
 border:1px solid #6495ed;
-text-align:left;
+text-align:center;
 }
 
 .url {
@@ -53,13 +53,8 @@ td:hover .url {
   /*-webkit-transform: scale(1) translate(0px);*/ /* Safari 3-8 */
   /*transform: scale(1);*/ /* (200% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
   width:auto;
-  height:250px;
 }
 
-.box {
-   display: inline-block;
-   font-weight: bolder;
-}
 
 #flag_green {
 background-color: green;
@@ -81,22 +76,27 @@ width:45px;
 text-align: center;
 }
 
-#sortie{
-width:300px;
-}
 
 div.css-keje6w{
-border:2px solid #CAC8CA;
+border:0px solid #CAC8CA;
 }
 
-h2{
-background-color: #FEF8FD;
-border-bottom:2px solid #CAC8CA;
+
+#shapley{
+background-color: #EEE9ED;
+border:2px solid #CAC8CA;
+text-align: center;
+color: black;
+color: black;
+text-align:center;
 }
 
-h2#force-plot{
+#graph_shap {
 background-color: #FEF8FD;
 border:2px solid #CAC8CA;
+text-align: center;
+font-weight: bold;
+text-align:center;
 }
 
 iframe{
