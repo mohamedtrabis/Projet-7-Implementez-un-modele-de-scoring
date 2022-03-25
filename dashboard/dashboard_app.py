@@ -1,5 +1,3 @@
-import streamlit
-
 exec(open("function.py").read())
 
 
@@ -16,22 +14,22 @@ st.set_page_config(
 local_css("style.css")
 pd.options.display.float_format = '{:,.2f}'.format
 
-image_logo = Image.open("Image/home credit.jpg")
-newsize = (300, 168)
 
-left, mid ,right = st.columns([1,1, 1])
+
+
+
+
+
+image_logo = Image.open("Image/home credit1.jpg")
+newsize = (828, 505)
+
+left, mid ,right = st.columns([1,2, 1])
 
 with mid:
     image_logo = image_logo.resize(newsize)
     st.image(image_logo, '')
 
-
-# image = Image.open("images/da.png")
-# newsize = (212, 116)
-# image = image.resize(newsize)
-# st.image(image,'')
-
-st.subheader("Dashbord Application 📈")
+st.subheader("Dashbord Home Credit 📈")
 
 # Create a page dropdown
 #page = st.sidebar.radio("Choisissez votre Application",["LightGBM", "XGBoost"])
@@ -56,7 +54,8 @@ description = description.drop_duplicates()
 left_, mid_ ,right_ = st.columns([1,1, 1])
 
 with mid_:
-    SK_ID_CURR = st.sidebar.text_input("Entrer le code client", 100007)
+    #SK_ID_CURR = st.sidebar.text_input("Entrer le code client", 100007)
+    SK_ID_CURR = st.sidebar.selectbox('Description des variables', df_train1['SK_ID_CURR'].head(1000))
     data = {
         'SK_ID_CURR': SK_ID_CURR,
     }
@@ -135,21 +134,37 @@ if len(pred_client)!=0:
     col_1.write(HTML(df.to_html(escape=False)))
     gauge(col_3)
 
-if plot_client :
+if plot_client and len(pred_client)!=0:
     st.markdown("<div id='shapley'><h2>Analyse Client : "+var_code+"</h2></div>", unsafe_allow_html=True)
     # Create a list of possible values and multiselect menu with them in it.
     # first we let streamlit know that we will be making a form
     my_form = st.form(key="test_form")
 
     #var = ['AGE', 'AMT_INCOME_TOTAL', 'AMT_CREDIT', 'CNT_CHILDREN', 'PAYMENT_RATE', 'NEW_GOODS_CREDIT']
-    var = ['All','NEW_EXT_MEAN', 'CODE_GENDER', 'CNT_CHILDREN','YEARS_EMPLOYED', 'EXT_SOURCE_3',
-       'NEW_GOODS_CREDIT', 'NAME_EDUCATION_TYPE_Higher education',
-       'EXT_SOURCE_2', 'PAYMENT_RATE', 'AMT_ANNUITY',
-       'PREV_NAME_CONTRACT_STATUS_Refused_MEAN', 'INS_AMT_PAYMENT_MIN',
-       'INS_DPD_STD', 'INS_DPD_MEAN', 'INS_AMT_PAYMENT_SUM',
-       'INS_DAYS_INSTALMENT_STD', 'PREV_CNT_PAYMENT_STD',
-       'PREV_DAYS_LAST_DUE_1ST_VERSION_MAX', 'DAYS_BIRTH',
-       'NAME_INCOME_TYPE_Working', 'INS_PAYMENT_PERC_MEAN']
+#     var = ['All','NEW_EXT_MEAN', 'CODE_GENDER', 'CNT_CHILDREN','DAYS_EMPLOYED', 'EXT_SOURCE_3',
+#        'NEW_GOODS_CREDIT', 'NAME_EDUCATION_TYPE_Higher education',
+#        'EXT_SOURCE_2', 'PAYMENT_RATE', 'AMT_ANNUITY',
+#        'PREV_NAME_CONTRACT_STATUS_Refused_MEAN', 'INS_AMT_PAYMENT_MIN',
+#        'INS_DPD_STD', 'INS_DPD_MEAN', 'INS_AMT_PAYMENT_SUM',
+#        'INS_DAYS_INSTALMENT_STD', 'PREV_CNT_PAYMENT_STD',
+#        'PREV_DAYS_LAST_DUE_1ST_VERSION_MAX', 'DAYS_BIRTH',
+#        'NAME_INCOME_TYPE_Working', 'INS_PAYMENT_PERC_MEAN']
+
+
+    var = ['All','EXT_SOURCE_MEAN', 'AMT_CREDIT', 'DAYS_BIRTH', 'INS_DPD_MEAN',
+       'AMT_ANNUITY', 'POS_CNT_INSTALMENT_FUTURE_MEAN', 'AMT_GOODS_PRICE',
+       'df_POS_CASH_balance_COUNT', 'PREV_CNT_PAYMENT_MEAN',
+       'BUREAU_AMT_CREDIT_SUM_DEBT_MEAN', 'DAYS_EMPLOYED',
+       'APPROVED_AMT_ANNUITY_MEAN', 'PREV_APP_CREDIT_PERC_MEAN',
+       'DAYS_ID_PUBLISH', 'ACTIVE_DAYS_CREDIT_MEAN',
+       'INS_AMT_PAYMENT_MEAN', 'INS_PAYMENT_PERC_MEAN',
+       'INS_PAYMENT_DIFF_MEAN', 'POS_SK_DPD_DEF_MEAN', 'CODE_GENDER',
+       'PREV_NAME_YIELD_GROUP_high_MEAN',
+       'PREV_DAYS_LAST_DUE_1ST_VERSION_MEAN', 'DAYS_LAST_PHONE_CHANGE',
+       'PREV_NAME_CONTRACT_STATUS_Refused_MEAN',
+       'INS_DAYS_ENTRY_PAYMENT_MEAN', 'INS_DBD_MEAN', 'FLAG_OWN_CAR',
+       'BUREAU_AMT_CREDIT_SUM_MEAN', 'INS_DAYS_INSTALMENT_MEAN',
+       'PREV_AMT_DOWN_PAYMENT_MEAN']
 
 
     col_selected = my_form.multiselect('Select Features', var)
@@ -197,11 +212,25 @@ if shapley and len(pred_client)!=0:
         st.markdown("<div id='graph_shap'><h3>Summary plot</h3></div>", unsafe_allow_html=True)
         # Summarize the effects of all the features
         st.pyplot(shap.summary_plot(shap_values, pred_client.iloc[:, 2:-2]))
+        # NOW CHANGED: SET UP THE WORKAROUND
+        class helper_object():
+            """
+            This wraps the shap object.
+            It takes as input i, which indicates the index of the observation to be explained.
+            """
 
+            def __init__(self, i):
+                self.expected_value = expected_value
+                self.data = df_train1.iloc[:, 2:-2]
+                self.feature_names = df_train1.iloc[:, 2:-2].columns.to_list()
+                self.values = shap_values[1][i]
+        #st.pyplot(shap.waterfall_plot(helper_object(5), len(shap_values[0][1])))
+        #st.pyplot(shap.plots._waterfall.waterfall_legacy(expected_value[0], shap_values[1][index_client],feature_names = df_train1.iloc[index_client:, 2:-2].columns.to_list()))
+        #st.pyplot(shap.plots.waterfall(expected_value,shap_values[0][index_client]))
 
     st.markdown("<div id='graph_shap'><h3>Force plot</h3></div>", unsafe_allow_html=True)
     # force_plot
-    st_shap(shap.force_plot(explainer.expected_value[1], shap_values[1][index_client], df_train1.iloc[index_client, 2:-2]))
+    st_shap(shap.force_plot(expected_value[1], shap_values[1][index_client], df_train1.iloc[index_client, 2:-2]))
 
     #fig = px.density_contour(df_train[['AGE']], x='AGE')
     #fig = px.ecdf(df_train, x="AGE", color="TARGET", markers=True, lines=False, marginal="histogram", title='Life expectancy in Canada')

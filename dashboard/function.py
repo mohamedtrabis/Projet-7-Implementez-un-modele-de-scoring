@@ -129,7 +129,7 @@ def plot_distribution_comp(var, id_client, nrow=2, ncol=2):
 
     sns.set_style('whitegrid')
     plt.figure()
-    fig, ax = plt.subplots(nrow, 1, figsize=(12, 5 * nrow))
+    fig, ax = plt.subplots(nrow, 1, figsize=(16, 5 * nrow))
 
     for feature in var:
         sns.set_style("dark")
@@ -144,10 +144,10 @@ def plot_distribution_comp(var, id_client, nrow=2, ncol=2):
         client = df_train1[feature][df_train1['SK_ID_CURR'] == str(id_client)].values[0]
         var = (df_train1[feature][df_train1[feature] == str(id_client)].count()) / ((df_train1[feature].count()))
         #plt.text(client, var, int(client), fontsize=8)
-        #plt.axvline(client, c='black')
+        plt.axvline(client, c='yellow', linewidth=0.9,  alpha=0.8)
         #plt.title(feature, fontsize=9)
 
-        plt.legend(fontsize=8)
+        plt.legend(fontsize=10)
         if col_selected[j] in description['Row'].values:
             title = description['Description'][description['Row'] == col_selected[j]].head(1).values[0]
             #st.sidebar.write(col_selected[j]+' : '+title)
@@ -155,12 +155,12 @@ def plot_distribution_comp(var, id_client, nrow=2, ncol=2):
         j=j+1
 
         density = gaussian_kde(df_train1[feature])
-        max = density(df_train1[feature]).max()
+        max_density = density(df_train1[feature]).max()
         max_features = df_train1[feature].max()
         x = client
         y = density(x)
 
-        plt.annotate(var_code+'\n'+str(np.ceil(x)), xy=(x, y), xytext=(max_features/1.2, max* 0.5), fontsize=8,
+        plt.annotate(var_code+'\n'+str(x), xy=(x, y), xytext=(max_features/1.15, max_density), fontsize=10,
                      #arrowprops=dict(facecolor='green', shrink=0.01),
                      #bbox=dict(boxstyle="round4,pad=.5", fc="0.8"),
                      #arrowprops=dict(arrowstyle="->", connectionstyle="angle,angleA=0,angleB=80,rad=20")
@@ -211,7 +211,7 @@ def gauge(col):
         autosize=True,
         # width=1000,
         template={'data': {'indicator': [{
-            'title': {'text': "Defaut de paiement (> 30)", 'font': {'size': 20}},
+            'title': {'text': "Defaut de paiement (< 30)", 'font': {'size': 20}},
             'mode': "number+delta+gauge",
             'delta': {'reference': 100}}]
         }})
