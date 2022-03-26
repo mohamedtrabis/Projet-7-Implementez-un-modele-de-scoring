@@ -57,6 +57,8 @@ from sklearn.metrics import accuracy_score, f1_score, mean_squared_error, mean_a
 
 from scipy.stats import gaussian_kde
 
+from streamlit_option_menu import option_menu
+
 #import st_state_patch
 
 from PIL import Image
@@ -108,7 +110,7 @@ def path_to_image_url(path):
     return '<div class ="image" ><img class="url" src="' + path + '""/></div>'
 
 # ----------------------------------------------------------------------------------------------------------------
-@st.cache(suppress_st_warning=True)
+@st.cache(allow_output_mutation=True)
 def get_explainer():
     explainer = shap.TreeExplainer(lgbm_clf)
     shap_values = explainer.shap_values(df_train1.iloc[:, 2:-2])
@@ -139,17 +141,21 @@ def plot_distribution_comp(var, id_client, nrow=2, ncol=2):
         sns.kdeplot(t0[feature], bw_adjust=0.5, label="No default", color='blue', shade=True)
         plt.ylabel('Density plot', fontsize=8)
         plt.xlabel(feature, fontsize=8)
-        locs, labels = plt.xticks()
+        #locs, labels = plt.xticks()
         plt.tick_params(axis='both', which='major', labelsize=10)
         client = df_train1[feature][df_train1['SK_ID_CURR'] == str(id_client)].values[0]
-        var = (df_train1[feature][df_train1[feature] == str(id_client)].count()) / ((df_train1[feature].count()))
+        #var = (df_train1[feature][df_train1[feature] == str(id_client)].count()) / ((df_train1[feature].count()))
         #plt.text(client, var, int(client), fontsize=8)
         plt.axvline(client, c='yellow', linewidth=0.9,  alpha=0.8)
         #plt.title(feature, fontsize=9)
 
         plt.legend(fontsize=10)
         if col_selected[j] in description['Row'].values:
-            title = description['Description'][description['Row'] == col_selected[j]].head(1).values[0]
+            chaine = description['Description'][description['Row'] == col_selected[j]].head(1).values[0]
+            if (len(chaine)>70):
+                title = str(chaine)[0:70]+'...'
+            else :
+                title = chaine
             #st.sidebar.write(col_selected[j]+' : '+title)
             plt.title(title,fontsize=11)
         j=j+1
@@ -226,3 +232,52 @@ def try_read_df(file):
 @st.cache(allow_output_mutation=True)
 def try_read_desc(file):
     return pd.read_csv(file, encoding= 'unicode_escape', usecols=['Row','Description'])
+
+# ----------------------------------------------------------------------------------------------------------------
+def streamlit_menu(example=1):
+    if example == 1:
+        # 1. as sidebar menu
+        with st.sidebar:
+            selected = option_menu(
+                menu_title="Home Credit",  # required
+                options=["Analyse", "Shapley", "Description"],  # required
+                icons=["house", "activity", "lightbulb"],  # optional
+                menu_icon="cast",  # optional
+                default_index=0,  # optional
+            )
+        return selected
+
+    if example == 2:
+        # 2. horizontal menu w/o custom style
+        selected = option_menu(
+            menu_title=None,  # required
+            options=["Analyse", "Shapley", "Description"],  # required
+            icons=["house", "activity", "lightbulb"],  # optional
+            menu_icon="cast",  # optional
+            default_index=0,  # optional
+            orientation="horizontal",
+        )
+        return selected
+
+    if example == 3:
+        # 2. horizontal menu with custom style
+        selected = option_menu(
+            menu_title=None,  # required
+            options=["Home", "Projects", "Contact"],  # required
+            icons=["house", "book", "envelope"],  # optional
+            menu_icon="cast",  # optional
+            default_index=0,  # optional
+            orientation="horizontal",
+            styles={
+                "container": {"padding": "0!important", "background-color": "#fafafa"},
+                "icon": {"color": "orange", "font-size": "25px"},
+                "nav-link": {
+                    "font-size": "25px",
+                    "text-align": "left",
+                    "margin": "0px",
+                    "--hover-color": "#eee",
+                },
+                "nav-link-selected": {"background-color": "green"},
+            },
+        )
+        return selected

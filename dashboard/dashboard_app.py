@@ -1,5 +1,7 @@
-exec(open("function.py").read())
+#dirname = "../"
+dirname = ""
 
+exec(open(dirname+"function.py").read())
 
 from PIL import Image
 st.set_page_config(
@@ -11,17 +13,11 @@ st.set_page_config(
 
 #s = st.session_state
 
-local_css("style.css")
+local_css(dirname+"style.css")
 pd.options.display.float_format = '{:,.2f}'.format
 
-
-
-
-
-
-
 image_logo = Image.open("Image/home credit1.jpg")
-newsize = (828, 505)
+newsize = (580, 354)
 
 left, mid ,right = st.columns([1,2, 1])
 
@@ -29,33 +25,44 @@ with mid:
     image_logo = image_logo.resize(newsize)
     st.image(image_logo, '')
 
-st.subheader("Dashbord Home Credit 📈")
+
+# 1=sidebar menu, 2=horizontal menu, 3=horizontal menu w/ custom menu
+EXAMPLE_NO = 1
+selected = streamlit_menu(example=EXAMPLE_NO)
+
+
+
+st.header("Dashboard 📈")
 
 # Create a page dropdown
 #page = st.sidebar.radio("Choisissez votre Application",["LightGBM", "XGBoost"])
 
-
+st.set_option('deprecation.showPyplotGlobalUse', False)
 #-----------------------------------------------------------------------------------------------------------------
 # Transformer les données d'entrée en données adaptées à notre modèle
 # importer la base de données
-#df_train1 = pd.read_csv('../db/df_train1_2000.csv')
-#df_train = pd.read_csv('../db/df_train_2000.csv')
+file = dirname+'db/df_train1_2000.csv'
+file_desc = dirname+'db/HomeCredit_columns_description.csv'
 
-#file2 = '../Data/application_train.csv'
-file = 'db/df_train1_2000.csv'
-file_desc = 'db/HomeCredit_columns_description.csv'
-st.set_option('deprecation.showPyplotGlobalUse', False)
 description = try_read_desc(file_desc)
 df_train1 =try_read_df(file)
 #description = try_read_df(file_desc)
 
-description = description.drop_duplicates()
+description = description.drop_duplicates(subset='Row', keep='last')
+
+desc_1, desc_2, desc_3 = st.columns([1,12, 1])
+if selected == "Description":
+#if colonne_descr:
+    select_desc = st.sidebar.selectbox('Sélectionner une variables', description['Row'])
+
+    #t.sidebar.write(description['Description'][description['Row']==select_desc].head(1).values[0])
+    desc_2.write(HTML(description[['Row','Description']][description['Row']==select_desc].head(1).to_html(index = False, escape=False)))
 
 left_, mid_ ,right_ = st.columns([1,1, 1])
 
 with mid_:
     #SK_ID_CURR = st.sidebar.text_input("Entrer le code client", 100007)
-    SK_ID_CURR = st.sidebar.selectbox('Description des variables', df_train1['SK_ID_CURR'].head(1000))
+    SK_ID_CURR = st.sidebar.selectbox('Sélectionner un client', df_train1['SK_ID_CURR'].head(1000))
     data = {
         'SK_ID_CURR': SK_ID_CURR,
     }
@@ -100,78 +107,85 @@ if len(pred_client)==0:
     st.write('No data found')
     st.stop()
 
-plot_client = st.sidebar.checkbox('Analyse données client')
-shapley = st.sidebar.checkbox('Analyse Shapley')
 
+#plot_client = st.sidebar.checkbox('Analyse données client')
+#shapley = st.sidebar.checkbox('Analyse Shapley')
+#colonne_descr = st.sidebar.checkbox('Description des variables')
 
-select_desc = st.sidebar.selectbox('Description des variables', description['Row'])
+def clear_form():
+    st.session_state["select_1"] = col_selected[0]
 
-st.sidebar.write(description['Description'][description['Row']==select_desc].head(1).values[0])
+#initialize session state
+if "select_1" not in st.session_state :
+    st.session_state.select_1 = False
+
+#initialize session state
+if "load_state" not in st.session_state :
+    st.session_state.load_state = False
+
 # -------------------------------------------------------------------------------------------------------------
-
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
 # Importer le modèle entrainé lightGBM
-lgbm_clf = pickle.load(open('lgbm_clf.pkl', 'rb'))
+lgbm_clf = pickle.load(open(dirname+'lgbm_clf.pkl', 'rb'))
 
 # Prediction resultat
 tab = ['No Default', 'Default']
 y_pred = lgbm_clf.predict_proba(pred_client.iloc[:, 2:-2])
 risk = "{:,.0f}".format(y_pred[0][1]*100)
 pred_0 = "{:,.0f}".format(y_pred[0][0]*100)
-#st.write('TARGET du client prédit: ', tab[y_pred[0]])
-#st.write(y_pred)
+if selected!='Description':
+    with st.expander("Informations Client"):
+        col_0, col_1, col_3, col_4  = st.columns([1,3,4,1])
+
+        #Working with checkbox
+        if len(pred_client)!=0 and selected!='Description':
+            donnee_sortie['CODE_GENDER'] = donnee_sortie['CODE_GENDER'].map({0: 'M', 1: 'F'})
+            donnee_sortie['FLAG_OWN_CAR'] = donnee_sortie['FLAG_OWN_CAR'].map({0: 'N', 1: 'Y'})
+            donnee_sortie['FLAG_OWN_REALTY'] = donnee_sortie['FLAG_OWN_REALTY'].map({0: 'Y', 1: 'N'})
+            df = donnee_sortie.T
+            df.columns = ['Data']
+            col_1.write(HTML(df.to_html(escape=False)))
+            gauge(col_3)
 
 
-col_0, col_1, col_3, col_4  = st.columns([1,3,4,1])
+# Create a list of possible values and multiselect menu with them in it.
+# first we let streamlit know that we will be making a form
+my_form = st.form(key="form")
 
-if len(pred_client)!=0:
-    donnee_sortie['CODE_GENDER'] = donnee_sortie['CODE_GENDER'].map({0: 'M', 1: 'F'})
-    donnee_sortie['FLAG_OWN_CAR'] = donnee_sortie['FLAG_OWN_CAR'].map({0: 'N', 1: 'Y'})
-    donnee_sortie['FLAG_OWN_REALTY'] = donnee_sortie['FLAG_OWN_REALTY'].map({0: 'Y', 1: 'N'})
-    df = donnee_sortie.T
-    df.columns = ['Data']
-    col_1.write(HTML(df.to_html(escape=False)))
-    gauge(col_3)
+if selected == "Analyse":
+#if plot_client and len(pred_client)!=0:
 
-if plot_client and len(pred_client)!=0:
-    st.markdown("<div id='shapley'><h2>Analyse Client : "+var_code+"</h2></div>", unsafe_allow_html=True)
-    # Create a list of possible values and multiselect menu with them in it.
-    # first we let streamlit know that we will be making a form
-    my_form = st.form(key="test_form")
-
-    #var = ['AGE', 'AMT_INCOME_TOTAL', 'AMT_CREDIT', 'CNT_CHILDREN', 'PAYMENT_RATE', 'NEW_GOODS_CREDIT']
-#     var = ['All','NEW_EXT_MEAN', 'CODE_GENDER', 'CNT_CHILDREN','DAYS_EMPLOYED', 'EXT_SOURCE_3',
-#        'NEW_GOODS_CREDIT', 'NAME_EDUCATION_TYPE_Higher education',
-#        'EXT_SOURCE_2', 'PAYMENT_RATE', 'AMT_ANNUITY',
-#        'PREV_NAME_CONTRACT_STATUS_Refused_MEAN', 'INS_AMT_PAYMENT_MIN',
-#        'INS_DPD_STD', 'INS_DPD_MEAN', 'INS_AMT_PAYMENT_SUM',
-#        'INS_DAYS_INSTALMENT_STD', 'PREV_CNT_PAYMENT_STD',
-#        'PREV_DAYS_LAST_DUE_1ST_VERSION_MAX', 'DAYS_BIRTH',
-#        'NAME_INCOME_TYPE_Working', 'INS_PAYMENT_PERC_MEAN']
+    my_form.markdown("<div id='shapley'><h2>Analyse Client : "+var_code+"</h2></div>", unsafe_allow_html=True)
 
 
     var = ['All','EXT_SOURCE_MEAN', 'AMT_CREDIT', 'DAYS_BIRTH', 'INS_DPD_MEAN',
-       'AMT_ANNUITY', 'POS_CNT_INSTALMENT_FUTURE_MEAN', 'AMT_GOODS_PRICE',
-       'df_POS_CASH_balance_COUNT', 'PREV_CNT_PAYMENT_MEAN',
-       'BUREAU_AMT_CREDIT_SUM_DEBT_MEAN', 'DAYS_EMPLOYED',
-       'APPROVED_AMT_ANNUITY_MEAN', 'PREV_APP_CREDIT_PERC_MEAN',
-       'DAYS_ID_PUBLISH', 'ACTIVE_DAYS_CREDIT_MEAN',
-       'INS_AMT_PAYMENT_MEAN', 'INS_PAYMENT_PERC_MEAN',
-       'INS_PAYMENT_DIFF_MEAN', 'POS_SK_DPD_DEF_MEAN', 'CODE_GENDER',
-       'PREV_NAME_YIELD_GROUP_high_MEAN',
-       'PREV_DAYS_LAST_DUE_1ST_VERSION_MEAN', 'DAYS_LAST_PHONE_CHANGE',
-       'PREV_NAME_CONTRACT_STATUS_Refused_MEAN',
-       'INS_DAYS_ENTRY_PAYMENT_MEAN', 'INS_DBD_MEAN', 'FLAG_OWN_CAR',
-       'BUREAU_AMT_CREDIT_SUM_MEAN', 'INS_DAYS_INSTALMENT_MEAN',
-       'PREV_AMT_DOWN_PAYMENT_MEAN']
-
+           'AMT_ANNUITY', 'POS_CNT_INSTALMENT_FUTURE_MEAN', 'AMT_GOODS_PRICE',
+           'df_POS_CASH_balance_COUNT', 'PREV_CNT_PAYMENT_MEAN',
+           'BUREAU_AMT_CREDIT_SUM_DEBT_MEAN', 'DAYS_EMPLOYED',
+           'APPROVED_AMT_ANNUITY_MEAN', 'PREV_APP_CREDIT_PERC_MEAN',
+           'DAYS_ID_PUBLISH', 'ACTIVE_DAYS_CREDIT_MEAN',
+           'INS_AMT_PAYMENT_MEAN', 'INS_PAYMENT_PERC_MEAN',
+           'INS_PAYMENT_DIFF_MEAN', 'POS_SK_DPD_DEF_MEAN', 'CODE_GENDER',
+           'PREV_NAME_YIELD_GROUP_high_MEAN',
+           'PREV_DAYS_LAST_DUE_1ST_VERSION_MEAN', 'DAYS_LAST_PHONE_CHANGE',
+           'PREV_NAME_CONTRACT_STATUS_Refused_MEAN',
+           'INS_DAYS_ENTRY_PAYMENT_MEAN', 'INS_DBD_MEAN', 'FLAG_OWN_CAR',
+           'BUREAU_AMT_CREDIT_SUM_MEAN', 'INS_DAYS_INSTALMENT_MEAN',
+           'PREV_AMT_DOWN_PAYMENT_MEAN']
 
     col_selected = my_form.multiselect('Select Features', var)
 
+
     # all forms end with a submit button, that is how the user can trigger
     submit = my_form.form_submit_button(label="submit")
-    if submit:
+    #clear = my_form.form_submit_button(label="Clear", on_click=clear_form)
+
+    if submit or st.session_state.load_state:
+
+        st.session_state.load_state = True
+        #st.session_state.select_1 = col_selected[0]
+
         if (len(col_selected) == 0):
             my_form.write('Please Select Features')
 
@@ -185,48 +199,34 @@ if plot_client and len(pred_client)!=0:
         elif (len(col_selected)>0) :
             plot_distribution_comp(col_selected, int(var_code), nrow=int(np.ceil(len(col_selected)/2)), ncol=2)
 
-if shapley and len(pred_client)!=0:
-
+if selected == "Shapley":
+#if shapley:
     # Initialize SHAP Tree explainer
     explainer, shap_values, expected_value = get_explainer()
 
-    # explainer = shap.TreeExplainer(lgbm_clf, model_output='raw')
-    # shap_values = explainer.shap_values(df_train1.iloc[ :, 2:])
 
     st.markdown("<div id='shapley'><h2>Analyse Shapley</h2></div></br>", unsafe_allow_html=True)
     index_client = df_train1[df_train1['SK_ID_CURR'] == var_code].index.values[0]
 
-    col1, col2 = st.columns([1, 1])
-    with col1:
-        st.markdown("<div id='graph_shap'><h3>Decision plot</h3></div>", unsafe_allow_html=True)
-        # decision_plot
-        decision = shap.decision_plot(base_value=explainer.expected_value[1],
-                                      shap_values=shap_values[1][index_client],
-                                      features=df_train1.iloc[index_client:, 2:-2],
-                                      feature_names=df_train1.iloc[:, 2:-2].columns.tolist(),
-                                      link='logit')
+    shap1, shap2 = st.columns(2)
+    shap1.markdown("<div id='graph_shap'><h3>Decision plot</h3></div>", unsafe_allow_html=True)
+    # decision_plot
+    decision = shap.decision_plot(base_value=explainer.expected_value[1],
+                                  shap_values=shap_values[1][index_client],
+                                  features=df_train1.iloc[index_client:, 2:-2],
+                                  feature_names=df_train1.iloc[:, 2:-2].columns.tolist())
 
-        st.pyplot(decision, unsafe_allow_html=False)
-        # st.pyplot(fig,bbox_inches='tight',dpi=300,pad_inches=0)
-    with col2:
-        st.markdown("<div id='graph_shap'><h3>Summary plot</h3></div>", unsafe_allow_html=True)
-        # Summarize the effects of all the features
-        st.pyplot(shap.summary_plot(shap_values, pred_client.iloc[:, 2:-2]))
-        # NOW CHANGED: SET UP THE WORKAROUND
-        class helper_object():
-            """
-            This wraps the shap object.
-            It takes as input i, which indicates the index of the observation to be explained.
-            """
+    shap1.pyplot(decision)
+    # st.pyplot(fig,bbox_inches='tight',dpi=300,pad_inches=0)
 
-            def __init__(self, i):
-                self.expected_value = expected_value
-                self.data = df_train1.iloc[:, 2:-2]
-                self.feature_names = df_train1.iloc[:, 2:-2].columns.to_list()
-                self.values = shap_values[1][i]
-        #st.pyplot(shap.waterfall_plot(helper_object(5), len(shap_values[0][1])))
-        #st.pyplot(shap.plots._waterfall.waterfall_legacy(expected_value[0], shap_values[1][index_client],feature_names = df_train1.iloc[index_client:, 2:-2].columns.to_list()))
-        #st.pyplot(shap.plots.waterfall(expected_value,shap_values[0][index_client]))
+    shap2.markdown("<div id='graph_shap'><h3>Waterfall Plot</h3></div>", unsafe_allow_html=True)
+    # Summarize the effects of all the features
+    #shap2.pyplot(shap.summary_plot(shap_values, pred_client.iloc[:, 2:-2]))
+
+    shap2.pyplot(shap.plots._waterfall.waterfall_legacy(expected_value[1],
+                                                        shap_values[1][index_client],
+                                                        feature_names = df_train1.iloc[:, 2:-2].columns,
+                                                        max_display = 20))
 
     st.markdown("<div id='graph_shap'><h3>Force plot</h3></div>", unsafe_allow_html=True)
     # force_plot
@@ -251,24 +251,3 @@ if shapley and len(pred_client)!=0:
     # Summarize the effects of all the features
     # st.pyplot(shap.summary_plot(shap_values[4], pred_client.iloc[:, 2:]))
 # --------------------------------------------------------------------------------------------------------------------
-
-
-# clf=RandomForestClassifier()
-# clf.fit(iris.data,iris.target)
-
-# prediction=clf.predict(df)
-
-# st.subheader("La catégorie de la fleur d'iris est:")
-# st.write(iris.target_names[prediction])
-# ----------------------------------------------------------------------------------------------------------------
-
-
-# importer le modèle
-# load_model=pickle.load(open('prevision_credit.pkl','rb'))
-
-
-# appliquer le modèle sur le profil d'entrée
-# prevision=load_model.predict(donnee_entree)
-
-# st.subheader('Résultat de la prévision')
-# st.write(prevision)
