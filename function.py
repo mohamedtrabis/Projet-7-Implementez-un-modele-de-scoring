@@ -58,6 +58,7 @@ from sklearn.metrics import accuracy_score, f1_score, mean_squared_error, mean_a
 from scipy.stats import gaussian_kde
 
 from streamlit_option_menu import option_menu
+import re
 
 #import st_state_patch
 
@@ -124,12 +125,13 @@ def st_shap(plot, height=None):
 # ----------------------------------------------------------------------------------------------------------------
 # Plot distribution of multiple features, with TARGET = 1/0 on the same graph
 def plot_distribution_comp(var, id_client, nrow=2, ncol=2):
+    sns.set_style("darkgrid", {"grid.color": ".6", "grid.linestyle": ":"})
     i = 0
     j=0
     t1 = df_train1.loc[df_train1['TARGET'] != 0]
     t0 = df_train1.loc[df_train1['TARGET'] == 0]
 
-    sns.set_style('whitegrid')
+    #sns.set_style('whitegrid')
     plt.figure()
     fig, ax = plt.subplots(nrow, 1, figsize=(16, 5 * nrow))
 
@@ -166,11 +168,12 @@ def plot_distribution_comp(var, id_client, nrow=2, ncol=2):
         x = client
         y = density(x)
 
-        plt.annotate(var_code+'\n'+str(x), xy=(x, y), xytext=(max_features/1.15, max_density), fontsize=10,
+        plt.annotate(var_code+'\n'+str(x), xy=(x, y), xytext=(max_features/1.05, max_density/1.5), fontsize=10,
                      #arrowprops=dict(facecolor='green', shrink=0.01),
                      #bbox=dict(boxstyle="round4,pad=.5", fc="0.8"),
                      #arrowprops=dict(arrowstyle="->", connectionstyle="angle,angleA=0,angleB=80,rad=20")
-                     bbox=dict(boxstyle ="round", fc ="0.8"),
+                     #bbox=dict(boxstyle ="round", fc ="0.8", edgecolor='blue',color='white'),
+                     bbox=dict(facecolor='white', fc ="0.99", edgecolor='black', boxstyle='round'),
                      arrowprops=dict(arrowstyle = "->",connectionstyle = "angle,angleA=90,angleB=180,rad=0",color='black')
                      )
 
@@ -240,9 +243,9 @@ def streamlit_menu(example=1):
         with st.sidebar:
             selected = option_menu(
                 menu_title="Home Credit",  # required
-                options=["Analyse", "Shapley", "Description"],  # required
-                icons=["house", "activity", "lightbulb"],  # optional
-                menu_icon="cast",  # optional
+                options=["Data Client", "Analyse", "Shapley", "Description"],  # required
+                icons=['files',"bar-chart-line-fill", "activity", "lightbulb"],  # optional
+                menu_icon="menu-button-wide-fill",  # optional
                 default_index=0,  # optional
             )
         return selected

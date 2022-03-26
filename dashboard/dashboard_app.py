@@ -46,17 +46,9 @@ file_desc = dirname+'db/HomeCredit_columns_description.csv'
 
 description = try_read_desc(file_desc)
 df_train1 =try_read_df(file)
-#description = try_read_df(file_desc)
 
 description = description.drop_duplicates(subset='Row', keep='last')
 
-desc_1, desc_2, desc_3 = st.columns([1,12, 1])
-if selected == "Description":
-#if colonne_descr:
-    select_desc = st.sidebar.selectbox('Sélectionner une variables', description['Row'])
-
-    #t.sidebar.write(description['Description'][description['Row']==select_desc].head(1).values[0])
-    desc_2.write(HTML(description[['Row','Description']][description['Row']==select_desc].head(1).to_html(index = False, escape=False)))
 
 left_, mid_ ,right_ = st.columns([1,1, 1])
 
@@ -135,7 +127,7 @@ y_pred = lgbm_clf.predict_proba(pred_client.iloc[:, 2:-2])
 risk = "{:,.0f}".format(y_pred[0][1]*100)
 pred_0 = "{:,.0f}".format(y_pred[0][0]*100)
 if selected!='Description':
-    with st.expander("Informations Client"):
+    with st.expander("Informations Client", expanded=True):
         col_0, col_1, col_3, col_4  = st.columns([1,3,4,1])
 
         #Working with checkbox
@@ -149,9 +141,19 @@ if selected!='Description':
             gauge(col_3)
 
 
+if selected == "Description" or selected == "Data Client":
+#if colonne_descr:
+    select_desc = st.sidebar.selectbox('Sélectionner une variables', description['Row'])
+
+    st.markdown("<div id='graph_shap'><h3>Description des variables</h3></div></br>", unsafe_allow_html=True)
+    #t.sidebar.write(description['Description'][description['Row']==select_desc].head(1).values[0])
+    st.write(HTML(description[['Row','Description']][description['Row']==select_desc].head(1).to_html(index = False, escape=False)))
+
+
 # Create a list of possible values and multiselect menu with them in it.
 # first we let streamlit know that we will be making a form
 my_form = st.form(key="form")
+
 
 if selected == "Analyse":
 #if plot_client and len(pred_client)!=0:
