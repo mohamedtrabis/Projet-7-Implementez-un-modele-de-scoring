@@ -58,7 +58,10 @@ from sklearn.metrics import accuracy_score, f1_score, mean_squared_error, mean_a
 from scipy.stats import gaussian_kde
 
 from streamlit_option_menu import option_menu
+
 import re
+
+import time
 
 #import st_state_patch
 
@@ -111,7 +114,7 @@ def path_to_image_url(path):
     return '<div class ="image" ><img class="url" src="' + path + '""/></div>'
 
 # ----------------------------------------------------------------------------------------------------------------
-@st.cache(allow_output_mutation=True)
+@st.cache(allow_output_mutation=True, show_spinner=False)
 def get_explainer():
     explainer = shap.TreeExplainer(lgbm_clf)
     shap_values = explainer.shap_values(df_train1.iloc[:, 2:-2])
@@ -244,7 +247,7 @@ def streamlit_menu(example=1):
             selected = option_menu(
                 menu_title="Home Credit",  # required
                 options=["Data Client", "Analyse", "Shapley", "Description"],  # required
-                icons=['files',"bar-chart-line-fill", "activity", "lightbulb"],  # optional
+                icons=['files',"bar-chart-line-fill", "activity", "zoom-in"],  # optional
                 menu_icon="menu-button-wide-fill",  # optional
                 default_index=0,  # optional
             )
@@ -254,8 +257,8 @@ def streamlit_menu(example=1):
         # 2. horizontal menu w/o custom style
         selected = option_menu(
             menu_title=None,  # required
-            options=["Analyse", "Shapley", "Description"],  # required
-            icons=["house", "activity", "lightbulb"],  # optional
+            options=["Data Client", "Analyse", "Shapley", "Description"],  # required
+            icons=['files', "bar-chart-line-fill", "activity", "zoom-in"],  # optional
             menu_icon="cast",  # optional
             default_index=0,  # optional
             orientation="horizontal",
