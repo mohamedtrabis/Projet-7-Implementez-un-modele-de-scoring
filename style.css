@@ -19,7 +19,7 @@ font-weight: bold;
 th, td{
 border: 1px solid black;
 padding: 10px;
-  }
+}
 
 td {
 font-family:sans-serif;
@@ -45,18 +45,18 @@ transition: all 700ms ease-in-out;
 }
 
 td:hover {
-  font-family:sans-serif;
-  /*font-weight: bolder; */
-  font-size:110%;
-  background-color: #f4f4f4;
-  }
+font-family:sans-serif;
+/*font-weight: bolder; */
+font-size:110%;
+background-color: #f4f4f4;
+}
 
 
 td:hover .url {
-  /*-ms-transform: scale(1) translate(0px);*/ /* IE 9 */
-  /*-webkit-transform: scale(1) translate(0px);*/ /* Safari 3-8 */
-  /*transform: scale(1);*/ /* (200% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
-  width:auto;
+/*-ms-transform: scale(1) translate(0px);*/ /* IE 9 */
+/*-webkit-transform: scale(1) translate(0px);*/ /* Safari 3-8 */
+/*transform: scale(1);*/ /* (200% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
+width:auto;
 }
 
 table{
@@ -75,16 +75,6 @@ width:45px;
 text-align: center;
 }
 
-#flag_red {
-background-color: red;
-position: relative;
-left: 3px;
-font-weight: bolder;
-color:white;
-width:45px;
-text-align: center;
-}
-
 div.streamlit-expanderHeader{
 margin: 5px;
 font-family:monospace bold;
@@ -95,12 +85,12 @@ font-weight: bold;
 }
 
 div.streamlit-expanderHeader:hover{
-background-color:#E8F1FE;
+background-color:#CADFFA;
 color: black;
 }
 
 
-div.css-keje6w{
+div.css-keje6w {
 border:0px solid #CAC8CA;
 }
 
@@ -130,10 +120,42 @@ button.css-1cpxqw2 {
 background: #0066A2;
 color: white;
 border-style: outset;
-border-color: #0066A2;
+border-color: #EFF6FF;
 height: 40px;
 font: bold 15px arial, sans-serif;
 text-shadow:none;
+height:35px;
+}
+
+#dash{
+margin-left: auto;
+margin-right: auto;
+background-color: #EFF6FF;
+border:5px solid #CADFFA;
+text-align: center;
+color: black;
+text-align:center;
+border-radius: 50% 30% / 30% 50%;
+width:70%;
+
+}
+
+img {
+border:2px solid #CAC8CA;
+}
+
+div img:hover{
+
+}
+
+div[data-baseweb="select"] > div {
+background-color: #DFEAFF;
+}
+
+
+
+div[role="listbox"] ul {
+background-color: #FFF;
 }
 
 </style>

@@ -2,6 +2,10 @@
 dirname = ""
 
 exec(open(dirname+"function.py").read())
+# interact with FastAPI endpoint
+#backend = "http://127.0.0.1:8000/"
+
+
 
 from PIL import Image
 st.set_page_config(
@@ -12,12 +16,13 @@ st.set_page_config(
 )
 
 #s = st.session_state
+st.set_option('deprecation.showPyplotGlobalUse', False)
 
 local_css(dirname+"style.css")
 pd.options.display.float_format = '{:,.2f}'.format
 
 image_logo = Image.open("Image/home credit1.jpg")
-newsize = (580, 354)
+newsize = (464, 283)
 
 left, mid ,right = st.columns([1,2, 1])
 
@@ -25,18 +30,12 @@ with mid:
     image_logo = image_logo.resize(newsize)
     st.image(image_logo, '')
 
-
-# 1=sidebar menu, 2=horizontal menu, 3=horizontal menu w/ custom menu
-EXAMPLE_NO = 1
-selected = streamlit_menu(example=EXAMPLE_NO)
-
-
-st.header("Dashboard 📈")
+#st.header("Dashboard 📈")
+st.markdown("<div id='dash'><h1>Dashboard  📈</h1></div>", unsafe_allow_html=True)
 
 # Create a page dropdown
 #page = st.sidebar.radio("Choisissez votre Application",["LightGBM", "XGBoost"])
 
-st.set_option('deprecation.showPyplotGlobalUse', False)
 #-----------------------------------------------------------------------------------------------------------------
 # Transformer les données d'entrée en données adaptées à notre modèle
 # importer la base de données
@@ -48,6 +47,8 @@ df_train1 =try_read_df(file)
 
 description = description.drop_duplicates(subset='Row', keep='last')
 
+df_train1  = df_train1.rename(columns = lambda x:re.sub(' ', '_', x))
+
 left_, mid_ ,right_ = st.columns([1,1, 1])
 
 with mid_:
@@ -58,6 +59,11 @@ with mid_:
     }
 
     input_df = pd.DataFrame(data, index=[0])
+
+
+# 1=sidebar menu, 2=horizontal menu, 3=horizontal menu w/ custom menu
+EXAMPLE_NO = 1
+selected = streamlit_menu(example=EXAMPLE_NO)
 
 
 donnee_entree = pd.concat([input_df, df_train1])
@@ -120,14 +126,25 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 # Importer le modèle entrainé lightGBM
 lgbm_clf = pickle.load(open(dirname+'lgbm_clf.pkl', 'rb'))
 
+#Prédiction via l'API FastAPI
+#with st.spinner('Chargement des données de FastAPI ⌛'):
+   # y_pred = get_predictions(pred_client.iloc[:, 2:-2])
+
+
+#st.write(y_pred)
+#st.stop()
+
 # Prediction resultat
-tab = ['No Default', 'Default']
+#tab = ['No Default', 'Default']
 y_pred = lgbm_clf.predict_proba(pred_client.iloc[:, 2:-2])
+
 risk = "{:,.0f}".format(y_pred[0][1]*100)
 pred_0 = "{:,.0f}".format(y_pred[0][0]*100)
-if selected!='Description':
-    with st.expander("Informations Client", expanded=True):
+if selected!='Description' :
+
+    with st.expander("Informations Client : "+var_code, expanded=True):
         col_0, col_1, col_3, col_4  = st.columns([1,5,7,1])
+        col_5, col_6, col_7  = st.columns([1,20,1])
 
         #Working with checkbox
         if len(pred_client)!=0 and selected!='Description':
@@ -137,10 +154,11 @@ if selected!='Description':
             df = donnee_sortie.T
             df.columns = ['Data']
             col_1.write(HTML(df.to_html(escape=False)))
-            gauge(col_3)
+            gauge(col_3, col_6)
 
 
 if selected == "Description" or selected == "Data Client":
+
     with st.expander("Description des variables", expanded=True):
 
         form_descr = st.form(key="form_descr")
@@ -149,15 +167,17 @@ if selected == "Description" or selected == "Data Client":
 
         form_descr.markdown("<div id='shapley'><h3>Description des variables</h3></div></br>", unsafe_allow_html=True)
 
-        col_descr = form_descr.multiselect('Sélectionner une variable', description['Row'])
+        col_descr = form_descr.multiselect('Sélectionner une ou plusieurs variables', description['Row'])
         #t.sidebar.write(description['Description'][description['Row']==select_desc].head(1).values[0])
 
         submit_descr = form_descr.form_submit_button(label="submit 🔎" )
 
-        if submit_descr:
-            #form_descr.session_state.load_state = True
+        if submit_descr :
+
+            #st.session_state.load_state = True
+            #form_descr.session_state.Trueload_state = True
             if (len(col_descr) == 0):
-                form_descr.write('Sélectionner une variable')
+                form_descr.error('❌ Sélectionner au moins une variable')
                 st.stop()
             Row_list=[]
             for index, rows in description.iterrows():
@@ -180,7 +200,7 @@ if selected == "Description" or selected == "Data Client":
 # first we let streamlit know that we will be making a form
 
 if selected == "Analyse":
-    with st.expander("Analyse Client", expanded=True):
+    with st.expander("Analyse Client : "+var_code, expanded=True):
         my_form = st.form(key="form")
 #if plot_client and len(pred_client)!=0:
 
@@ -202,7 +222,7 @@ if selected == "Analyse":
                'BUREAU_AMT_CREDIT_SUM_MEAN', 'INS_DAYS_INSTALMENT_MEAN',
                'PREV_AMT_DOWN_PAYMENT_MEAN']
 
-        col_selected = my_form.multiselect('Sélectionner une variable', var, 'AMT_CREDIT')
+        col_selected = my_form.multiselect('Sélectionner une ou plusieurs variables', var)
 
         # all forms end with a submit button, that is how the user can trigger
         submit = my_form.form_submit_button(label="submit 🔎")
@@ -214,7 +234,7 @@ if selected == "Analyse":
                 #st.session_state.select_1 = col_selected[0]
 
                 if (len(col_selected) == 0):
-                    my_form.write('Sélectionner une variable')
+                    my_form.error('❌ Sélectionner au moins une variable')
                     st.stop()
 
                 elif (col_selected[0] == 'All'):
@@ -227,22 +247,22 @@ if selected == "Analyse":
                 elif (len(col_selected)>0) :
                     plot_distribution_comp(col_selected, int(var_code), nrow=int(np.ceil(len(col_selected)/2)), ncol=2)
 
-        Row_list = []
+                Row_list = []
 
-        for index, rows in description.iterrows():
-            for i in range(len(col_selected)):
-                if (rows.Row == col_selected[i] and col_selected[i] in description['Row'].values):
-                    my_list = [rows.Row, rows.Description]
+                for index, rows in description.iterrows():
+                    for i in range(len(col_selected)):
+                        if (rows.Row == col_selected[i] and col_selected[i] in description['Row'].values):
+                            my_list = [rows.Row, rows.Description]
 
-                    Row_list.append(my_list)
-        df_dscr = pd.DataFrame(Row_list)
-        df_dscr.columns = ['Variable', 'Description']
-        st.write(HTML(df_dscr.to_html(index=False, escape=False)))
-        st.markdown("</br>",unsafe_allow_html=True)
+                            Row_list.append(my_list)
+                df_dscr = pd.DataFrame(Row_list)
+                df_dscr.columns = ['Variable', 'Description']
+                st.write(HTML(df_dscr.to_html(index=False, escape=False)))
+                st.markdown("</br>",unsafe_allow_html=True)
 
 
 if selected == "Shapley":
-    with st.expander("Analyse Shapley", expanded=True):
+    with st.expander("Analyse Shapley client: "+var_code, expanded=True):
 #if shapley:
         # Initialize SHAP Tree explainer
         with st.spinner('Chargement des données Shapley ⌛'):

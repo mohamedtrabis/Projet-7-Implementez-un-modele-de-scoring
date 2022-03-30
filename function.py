@@ -40,7 +40,7 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder, O
 from sklearn import linear_model
 from sklearn.linear_model import Ridge
 from sklearn.linear_model import Lasso
-from sklearn.metrics import accuracy_score, f1_score, mean_squared_error, mean_absolute_percentage_error
+from sklearn.metrics import accuracy_score, f1_score
 from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor
 
 from sklearn.pipeline import make_pipeline, Pipeline
@@ -53,7 +53,7 @@ import lightgbm as lgbm
 from IPython.core.display import display, HTML
 
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, f1_score, mean_squared_error, mean_absolute_percentage_error
+from sklearn.metrics import accuracy_score, f1_score
 
 from scipy.stats import gaussian_kde
 
@@ -62,6 +62,16 @@ from streamlit_option_menu import option_menu
 import re
 
 import time
+import requests
+
+import pycaret
+from pycaret.regression import load_model, predict_model
+from pydantic import BaseModel
+from fastapi import FastAPI
+import uvicorn
+import joblib,os
+import json
+from fastapi.encoders import jsonable_encoder
 
 #import st_state_patch
 
@@ -116,6 +126,7 @@ def path_to_image_url(path):
 # ----------------------------------------------------------------------------------------------------------------
 @st.cache(allow_output_mutation=True, show_spinner=False)
 def get_explainer():
+    lgbm_clf = pickle.load(open(dirname + 'lgbm_clf.pkl', 'rb'))
     explainer = shap.TreeExplainer(lgbm_clf)
     shap_values = explainer.shap_values(df_train1.iloc[:, 2:-2])
     expected_value = explainer.expected_value
@@ -182,7 +193,7 @@ def plot_distribution_comp(var, id_client, nrow=2, ncol=2):
 
     st.pyplot(fig)
 # ----------------------------------------------------------------------------------------------------------------
-def gauge(col):
+def gauge(col, col_st):
     fig = go.Figure()
     if (float(risk) > 30):
         fig.add_trace(go.Indicator(
@@ -200,6 +211,8 @@ def gauge(col):
             },
             domain={'row': 0, 'column': 0}))
 
+        col_st.error('Cr&eacute;dit refus&eacute;')
+
     else:
         fig.add_trace(go.Indicator(
 
@@ -215,6 +228,8 @@ def gauge(col):
                     'value': 30}
             },
             domain={'row': 0, 'column': 0}))
+
+        col_st.success('Cr&eacute;dit accord&eacute;')
 
     fig.update_layout(
         # paper_bgcolor = "lightgray",
@@ -287,3 +302,14 @@ def streamlit_menu(example=1):
             },
         )
         return selected
+
+
+#Prédiction via FastApi
+@st.cache(allow_output_mutation=True, show_spinner=False)
+def get_predictions(df):
+    df = df.to_dict('records')[0]
+    df = json.dumps(df)
+    headers = {'Content-Type': 'application/json'}
+    response = requests.request("POST", 'http://127.0.0.1:8000/predict/', headers=headers, data=df)
+    df_json = response.json()
+    return df_json
