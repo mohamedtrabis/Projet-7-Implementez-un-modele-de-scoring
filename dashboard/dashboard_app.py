@@ -1,7 +1,7 @@
 import pandas as pd
 
-#dirname = "../"
-dirname = ""
+dirname = "../"
+#dirname = ""
 
 exec(open(dirname+"function.py").read())
 # interact with FastAPI endpoint
@@ -137,11 +137,11 @@ def form_callback():
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
 # Importer le modèle entrainé lightGBM
-#lgbm_clf = pickle.load(open(dirname+'lgbm_clf.pkl', 'rb'))
+lgbm_clf = pickle.load(open(dirname+'lgbm_clf.pkl', 'rb'))
 
 #Prédiction via l'API FastAPI
-with st.spinner('Chargement des données de FastAPI ⌛'):
-    y_pred = get_predictions(pred_client.iloc[:, 2:-2])
+#with st.spinner('Chargement des données de FastAPI ⌛'):
+ #   y_pred = get_predictions(pred_client.iloc[:, 2:-2])
 
 
 #st.write(y_pred)
@@ -149,7 +149,7 @@ with st.spinner('Chargement des données de FastAPI ⌛'):
 
 # Prediction resultat
 #tab = ['No Default', 'Default']
-#y_pred = lgbm_clf.predict_proba(pred_client.iloc[:, 2:-2])
+y_pred = lgbm_clf.predict_proba(pred_client.iloc[:, 2:-2])
 
 risk = "{:,.0f}".format(y_pred[0][1]*100)
 pred_0 = "{:,.0f}".format(y_pred[0][0]*100)
