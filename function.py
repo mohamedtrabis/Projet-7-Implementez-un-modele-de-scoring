@@ -66,12 +66,12 @@ import requests
 
 #import pycaret
 #from pycaret.regression import load_model, predict_model
-from pydantic import BaseModel
-from fastapi import FastAPI
-import uvicorn
-import joblib,os
-import json
-from fastapi.encoders import jsonable_encoder
+#from pydantic import BaseModel
+#from fastapi import FastAPI
+#import uvicorn
+#import joblib,os
+#import json
+#from fastapi.encoders import jsonable_encoder
 
 #import st_state_patch
 
