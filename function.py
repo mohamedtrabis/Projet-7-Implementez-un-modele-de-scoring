@@ -306,12 +306,3 @@ def streamlit_menu(example=1):
         return selected
 
 
-#Prédiction via FastApi
-@st.cache(allow_output_mutation=True, show_spinner=False)
-def get_predictions(df):
-    df = df.to_dict('records')[0]
-    df = json.dumps(df)
-    headers = {'Content-Type': 'application/json'}
-    response = requests.request("POST", 'http://127.0.0.1:8000/predict/', headers=headers, data=df)
-    df_json = response.json()
-    return df_json
