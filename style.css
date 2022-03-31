@@ -127,18 +127,28 @@ text-shadow:none;
 height:35px;
 }
 
-#dash{
+#dash {
+position: relative;
 margin-left: auto;
 margin-right: auto;
-background-color: #EFF6FF;
-border:5px solid #CADFFA;
-text-align: center;
-color: black;
 text-align:center;
-border-radius: 50% 30% / 30% 50%;
-width:70%;
-
+background-color: #EFF6FF;
+border:1px solid #CADFFA;
+width: 70%;
+border-radius: 0% 0% 0% 0% / 0% 0% 0% 0% ;
+color: black;
+box-shadow: 10px 10px rgba(0,0,0,.15);
+transition: all .4s ease;
+margin-bottom : 20px;
 }
+#dash:hover {
+  border-radius: 0% 0% 50% 50% / 0% 0% 20% 20% ;
+  box-shadow: 10px 10px rgba(0,0,0,.30);
+  border:2px solid #CADFFA;
+  padding-left: 0.5rem;
+  border-left: 0.5rem solid red;
+}
+
 
 img {
 border:2px solid #CAC8CA;
