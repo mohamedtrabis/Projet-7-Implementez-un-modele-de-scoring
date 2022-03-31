@@ -110,6 +110,7 @@ border:2px solid #CAC8CA;
 text-align: center;
 font-weight: bold;
 text-align:center;
+box-shadow: 3px 3px rgba(0,0,0,.15);
 }
 
 iframe{
@@ -141,12 +142,14 @@ box-shadow: 10px 10px rgba(0,0,0,.15);
 transition: all .4s ease;
 margin-bottom : 20px;
 }
+
 #dash:hover {
-  border-radius: 0% 0% 50% 50% / 0% 0% 20% 20% ;
-  box-shadow: 10px 10px rgba(0,0,0,.30);
-  border:2px solid #CADFFA;
-  padding-left: 0.5rem;
-  border-left: 0.5rem solid red;
+border-radius: 0% 0% 50% 50% / 0% 0% 20% 20% ;
+box-shadow: 10px 10px rgba(0,0,0,.30);
+border:2px solid #CADFFA;
+padding-left: 0.5rem;
+border-left: 0.5rem solid red;
+background-color:#CADFFA;
 }
 
 
