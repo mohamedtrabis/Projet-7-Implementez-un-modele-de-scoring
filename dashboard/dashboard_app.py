@@ -1,7 +1,7 @@
 import pandas as pd
 
-dirname = "../"
-#dirname = ""
+#dirname = "../"
+dirname = ""
 
 exec(open(dirname+"function.py").read())
 # interact with FastAPI endpoint
