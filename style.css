@@ -152,10 +152,11 @@ margin-bottom : 20px;
 
 img {
 border:2px solid #CAC8CA;
+box-shadow: 3px 3px rgba(0,0,0,.15);
 }
 
 div img:hover{
-
+border-left: 0.3rem solid red;
 }
 
 div[data-baseweb="select"] > div {
