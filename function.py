@@ -64,14 +64,14 @@ import re
 import time
 import requests
 
-import pycaret
-from pycaret.regression import load_model, predict_model
-from pydantic import BaseModel
-from fastapi import FastAPI
-import uvicorn
-import joblib,os
+#import pycaret
+#from pycaret.regression import load_model, predict_model
+#from pydantic import BaseModel
+#from fastapi import FastAPI
+#import uvicorn
+#import joblib,os
 import json
-from fastapi.encoders import jsonable_encoder
+#from fastapi.encoders import jsonable_encoder
 
 #import st_state_patch
 
@@ -123,10 +123,11 @@ def path_to_image_url(path):
 
     return '<div class ="image" ><img class="url" src="' + path + '""/></div>'
 
+
 # ----------------------------------------------------------------------------------------------------------------
 @st.cache(allow_output_mutation=True, show_spinner=False)
 def get_explainer():
-    lgbm_clf = pickle.load(open(dirname + 'lgbm_clf.pkl', 'rb'))
+    lgbm_clf = pickle.load(open(dirname + 'model_best_lgbm.pkl', 'rb'))
     explainer = shap.TreeExplainer(lgbm_clf)
     shap_values = explainer.shap_values(df_train1.iloc[:, 2:-2])
     expected_value = explainer.expected_value
@@ -145,14 +146,15 @@ def plot_distribution_comp(var, id_client, nrow=2, ncol=2):
     t1 = df_train1.loc[df_train1['TARGET'] != 0]
     t0 = df_train1.loc[df_train1['TARGET'] == 0]
 
-    #sns.set_style('whitegrid')
-    plt.figure()
-    fig, ax = plt.subplots(nrow, 1, figsize=(16, 5 * nrow))
+
 
     for feature in var:
+        # sns.set_style('whitegrid')
+        plt.figure()
+        fig, ax = plt.subplots(figsize=(16, 5))
         sns.set_style("dark")
         i += 1
-        plt.subplot(nrow, ncol, i)
+
         sns.kdeplot(t1[feature], bw_adjust=0.5, label="In default", color='red', shade=True)
         sns.kdeplot(t0[feature], bw_adjust=0.5, label="No default", color='blue', shade=True)
         plt.ylabel('Density plot', fontsize=8)
@@ -166,8 +168,9 @@ def plot_distribution_comp(var, id_client, nrow=2, ncol=2):
         #plt.title(feature, fontsize=9)
 
         plt.legend(fontsize=10)
-        if col_selected[j] in description['Row'].values:
-            chaine = description['Description'][description['Row'] == col_selected[j]].head(1).values[0]
+
+        if col_selected[j] in df_description['col_name'].values:
+            chaine = df_description['Description'][df_description['col_name'] == col_selected[j]].head(1).values[0]
             if (len(chaine)>70):
                 title = str(chaine)[0:70]+'...'
             else :
@@ -191,7 +194,7 @@ def plot_distribution_comp(var, id_client, nrow=2, ncol=2):
                      arrowprops=dict(arrowstyle = "->",connectionstyle = "angle,angleA=90,angleB=180,rad=0",color='black')
                      )
 
-    st.pyplot(fig)
+        st.pyplot(fig)
 # ----------------------------------------------------------------------------------------------------------------
 def gauge(col, col_st):
     fig = go.Figure()
@@ -304,12 +307,3 @@ def streamlit_menu(example=1):
         return selected
 
 
-#Prédiction via FastApi
-@st.cache(allow_output_mutation=True, show_spinner=False)
-def get_predictions(df):
-    df = df.to_dict('records')[0]
-    df = json.dumps(df)
-    headers = {'Content-Type': 'application/json'}
-    response = requests.request("POST", 'http://127.0.0.1:8000/predict/', headers=headers, data=df)
-    df_json = response.json()
-    return df_json
