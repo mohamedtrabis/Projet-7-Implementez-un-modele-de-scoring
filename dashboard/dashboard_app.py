@@ -1,6 +1,6 @@
 # Chemin des fichiers
-#dirname = "../"
-dirname = ""
+dirname = "../"
+#dirname = ""
 
 #Importer les fonctions
 exec(open(dirname+"function.py",encoding='utf-8').read())
@@ -152,7 +152,7 @@ def form_callback():
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
 # Importer le modèle entrainé lightGBM
-lgbm_clf = pickle.load(open(dirname+'lgbm_clf.pkl', 'rb'))
+lgbm_clf = pickle.load(open(dirname+'model_best_lgbm.pkl', 'rb'))
 
 #Prédiction via l'API FastAPI
 #with st.spinner('Chargement des données de FastAPI ⌛'):
