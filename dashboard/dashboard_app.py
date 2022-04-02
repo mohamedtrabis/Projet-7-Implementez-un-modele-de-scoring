@@ -1,7 +1,10 @@
+# Chemin des fichiers
 #dirname = "../"
 dirname = ""
 
-exec(open(dirname+"function.py").read())
+#Importer les fonctions
+exec(open(dirname+"function.py",encoding='utf-8').read())
+
 # interact with FastAPI endpoint
 #backend = "http://127.0.0.1:8000/"
 
@@ -39,33 +42,58 @@ st.markdown("<div id='dash'><h1>Dashboard  📈</h1></div>", unsafe_allow_html=T
 #-----------------------------------------------------------------------------------------------------------------
 # Transformer les données d'entrée en données adaptées à notre modèle
 # importer la base de données
+
+#url="https://drive.google.com/file/d/1Oy0rtsr1_gH37O5TB5jtMd-u9-4XVMsb/view?usp=sharing"
+#path = 'https://drive.google.com/uc?export=download&id='+url.split('/')[-2]
+#st.write(path)
+#df = try_read_df(path)
+#st.write(df.head(3))
+
+#file = dirname+'df_train1.csv'
 file = dirname+'db/df_train1_2000.csv'
 file_desc = dirname+'db/HomeCredit_columns_description.csv'
 
+#Chargement des données
+
 description = try_read_desc(file_desc)
 df_train1 =try_read_df(file)
+#st.write(df_train1.memory_usage().sum() / 1024 ** 2)
+df_train1 = reduce_mem_usage(df_train1)
 
+#st.write(df_train1.memory_usage().sum() / 1024 ** 2)
+
+#Nettoyage du Dataframe description
 description = description.drop_duplicates(subset='Row', keep='last')
-
 df_train1  = df_train1.rename(columns = lambda x:re.sub(' ', '_', x))
+
+df_col_train = pd.DataFrame(list(zip(df_train1.iloc[:, 2:-2].columns)),columns=['col_name'])
+#Remplacer les chaines de caractères pour merger avec la dataframe de description
+df_col_train['Row'] = df_col_train['col_name'].str.replace(
+    r'\_MEAN|_STD|PREV_|POS_|INS_|BUREAU_|APPROVED_|APPROVED_|REFUSED_|REFUSED_|_Completed|_Rare|_Active|ACTIVE_|_Industry|_Married|_Separated|_Civil marriage|_Single / not married|_Civil_marriage|_Higher_education', '')
+
+df_col_train['Row'] = df_col_train['Row'].replace(['EXT_SOURCE', 'DPD', 'DBD'],
+                                                  ['EXT_SOURCE_3', 'SK_DPD', 'SK_DPD'])
+
+df_description = pd.merge(df_col_train, description, how="inner", on="Row")
 
 left_, mid_ ,right_ = st.columns([1,1, 1])
 
 with mid_:
     #SK_ID_CURR = st.sidebar.text_input("Entrer le code client", 100007)
-    SK_ID_CURR = st.sidebar.selectbox('Sélectionner un client', df_train1['SK_ID_CURR'].head(1000))
+    SK_ID_CURR = st.sidebar.selectbox('Sélectionner un client', df_train1['SK_ID_CURR'].head(2000))
     data = {
         'SK_ID_CURR': SK_ID_CURR,
     }
 
     input_df = pd.DataFrame(data, index=[0])
 
+threshold = st.sidebar.number_input("Seuil de solvabilité en %",15,100)
 
-# 1=sidebar menu, 2=horizontal menu, 3=horizontal menu w/ custom menu
+#Barre de menu : 1=sidebar menu, 2=horizontal menu, 3=horizontal menu w/ custom menu
 EXAMPLE_NO = 1
 selected = streamlit_menu(example=EXAMPLE_NO)
 
-
+#Afficher les données client
 donnee_entree = pd.concat([input_df, df_train1])
 
 donnee_entree = donnee_entree[:1]
@@ -124,11 +152,11 @@ def form_callback():
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
 # Importer le modèle entrainé lightGBM
-lgbm_clf = pickle.load(open(dirname+'lgbm_clf.pkl', 'rb'))
+lgbm_clf = pickle.load(open(dirname+'model_best_lgbm.pkl', 'rb'))
 
 #Prédiction via l'API FastAPI
 #with st.spinner('Chargement des données de FastAPI ⌛'):
-   # y_pred = get_predictions(pred_client.iloc[:, 2:-2])
+    #y_pred = get_predictions(pred_client.iloc[:, 2:-2])
 
 
 #st.write(y_pred)
@@ -140,7 +168,8 @@ y_pred = lgbm_clf.predict_proba(pred_client.iloc[:, 2:-2])
 
 risk = "{:,.0f}".format(y_pred[0][1]*100)
 pred_0 = "{:,.0f}".format(y_pred[0][0]*100)
-if selected!='Description' :
+
+if selected!='Description':
 
     with st.expander("Informations Client : "+var_code, expanded=True):
         col_0, col_1, col_3, col_4  = st.columns([1,5,7,1])
@@ -156,6 +185,9 @@ if selected!='Description' :
             col_1.write(HTML(df.to_html(escape=False)))
             gauge(col_3, col_6)
 
+
+if selected == 'Rapport':
+    report(df_train1[col])
 
 if selected == "Description" or selected == "Data Client":
 
@@ -185,11 +217,13 @@ if selected == "Description" or selected == "Data Client":
                     if (rows.Row == col_descr[i] and col_descr[i] in description['Row'].values):
                         my_list = [rows.Row, rows.Description]
 
+
                         Row_list.append(my_list)
-            df_dscr = pd.DataFrame(Row_list)
-            df_dscr.columns = ['Variable', 'Description']
-            form_descr.write(HTML(df_dscr.to_html(index=False, escape=False)))
-            form_descr.markdown("</br>", unsafe_allow_html=True)
+            if(len(Row_list)!=0):
+                df_dscr = pd.DataFrame(Row_list)
+                df_dscr.columns = ['Variable', 'Description']
+                form_descr.write(HTML(df_dscr.to_html(index=False, escape=False)))
+                form_descr.markdown("</br>", unsafe_allow_html=True)
 
 
         #st.write(HTML(description[['Row','Description']][description['Row']==select_desc].head(1).to_html(index = False, escape=False)))
@@ -209,18 +243,12 @@ if selected == "Analyse":
 
         var = ['All','EXT_SOURCE_MEAN', 'AMT_CREDIT', 'DAYS_BIRTH', 'INS_DPD_MEAN',
                'AMT_ANNUITY', 'POS_CNT_INSTALMENT_FUTURE_MEAN', 'AMT_GOODS_PRICE',
-               'df_POS_CASH_balance_COUNT', 'PREV_CNT_PAYMENT_MEAN',
-               'BUREAU_AMT_CREDIT_SUM_DEBT_MEAN', 'DAYS_EMPLOYED',
+               'PREV_CNT_PAYMENT_MEAN','BUREAU_AMT_CREDIT_SUM_DEBT_MEAN', 'DAYS_EMPLOYED',
                'APPROVED_AMT_ANNUITY_MEAN', 'PREV_APP_CREDIT_PERC_MEAN',
-               'DAYS_ID_PUBLISH', 'ACTIVE_DAYS_CREDIT_MEAN',
-               'INS_AMT_PAYMENT_MEAN', 'INS_PAYMENT_PERC_MEAN',
-               'INS_PAYMENT_DIFF_MEAN', 'POS_SK_DPD_DEF_MEAN', 'CODE_GENDER',
-               'PREV_NAME_YIELD_GROUP_high_MEAN',
+               'DAYS_ID_PUBLISH', 'ACTIVE_DAYS_CREDIT_MEAN', 'INS_AMT_PAYMENT_MEAN', 'CODE_GENDER',
                'PREV_DAYS_LAST_DUE_1ST_VERSION_MEAN', 'DAYS_LAST_PHONE_CHANGE',
-               'PREV_NAME_CONTRACT_STATUS_Refused_MEAN',
                'INS_DAYS_ENTRY_PAYMENT_MEAN', 'INS_DBD_MEAN', 'FLAG_OWN_CAR',
-               'BUREAU_AMT_CREDIT_SUM_MEAN', 'INS_DAYS_INSTALMENT_MEAN',
-               'PREV_AMT_DOWN_PAYMENT_MEAN']
+               'BUREAU_AMT_CREDIT_SUM_MEAN', 'INS_DAYS_INSTALMENT_MEAN','PREV_AMT_DOWN_PAYMENT_MEAN']
 
         col_selected = my_form.multiselect('Sélectionner une ou plusieurs variables', var)
 
@@ -246,19 +274,21 @@ if selected == "Analyse":
 
                 elif (len(col_selected)>0) :
                     plot_distribution_comp(col_selected, int(var_code), nrow=int(np.ceil(len(col_selected)/2)), ncol=2)
+    with st.expander("Description des variables", expanded=True):
+        Row_list = []
+        for i in range(len(col_selected)):
+            if col_selected[i] in df_description['col_name'].values:
+                desc = df_description[['col_name','Description']][df_description['col_name'] == col_selected[i]].head(1).values[0]
 
-                Row_list = []
+                Row_list.append(desc)
 
-                for index, rows in description.iterrows():
-                    for i in range(len(col_selected)):
-                        if (rows.Row == col_selected[i] and col_selected[i] in description['Row'].values):
-                            my_list = [rows.Row, rows.Description]
+        if(len(Row_list)!=0):
+            df_dscr = pd.DataFrame(Row_list)
+            df_dscr.columns = ['Variable', 'Description']
 
-                            Row_list.append(my_list)
-                df_dscr = pd.DataFrame(Row_list)
-                df_dscr.columns = ['Variable', 'Description']
-                st.write(HTML(df_dscr.to_html(index=False, escape=False)))
-                st.markdown("</br>",unsafe_allow_html=True)
+            AgGrid(df_dscr,height=200, width='100%')
+            #st.write(HTML(df_dscr.to_html(index=False, escape=False)))
+            st.markdown("</br>",unsafe_allow_html=True)
 
 
 if selected == "Shapley":
@@ -266,17 +296,17 @@ if selected == "Shapley":
 #if shapley:
         # Initialize SHAP Tree explainer
         with st.spinner('Chargement des données Shapley ⌛'):
+            index_client = df_train1[df_train1['SK_ID_CURR'] == var_code].index.values[0]
+
             explainer, shap_values, expected_value = get_explainer()
 
-
             st.markdown("<div id='shapley'><h3>Analyse Shapley Client: "+var_code+"</h3></div></br>", unsafe_allow_html=True)
-            index_client = df_train1[df_train1['SK_ID_CURR'] == var_code].index.values[0]
 
             shap1, shap2 = st.columns(2)
             shap1.markdown("<div id='graph_shap'><h4>Decision plot</h4></div>", unsafe_allow_html=True)
             # decision_plot
             decision = shap.decision_plot(base_value=explainer.expected_value[1],
-                                          shap_values=shap_values[1][index_client],
+                                          shap_values=shap_values[1][0],
                                           features=df_train1.iloc[index_client:, 2:-2],
                                           feature_names=df_train1.iloc[:, 2:-2].columns.tolist())
 
@@ -288,16 +318,34 @@ if selected == "Shapley":
             #shap2.pyplot(shap.summary_plot(shap_values, pred_client.iloc[:, 2:-2]))
 
             shap2.pyplot(shap.plots._waterfall.waterfall_legacy(expected_value[1],
-                                                                shap_values[1][index_client],
+                                                                shap_values[1][0],
                                                                 feature_names = df_train1.iloc[:, 2:-2].columns,
                                                                 max_display = 20))
 
             st.markdown("<div id='graph_shap'><h4>Force plot</h4></div>", unsafe_allow_html=True)
             # force_plot
-            st_shap(shap.force_plot(expected_value[1], shap_values[1][index_client], df_train1.iloc[index_client, 2:-2]))
+            st_shap(shap.force_plot(expected_value[1], shap_values[1][0],
+                                    df_train1.iloc[index_client, 2:-2], text_rotation=30))
 
-            #st.balloons()
-            # st.success('Success message')
+    with st.expander("Description des variables Shapley", expanded=True):
+
+        #Extraire les variables les plus importantes
+        vals = np.abs(shap_values).mean(0)
+        feature_importance = pd.DataFrame(list(zip(pred_client.iloc[:, 2:-2].columns, vals[0])),
+                                          columns=['col_name', 'feature_importance_vals'])
+        feature_importance.sort_values(by=['feature_importance_vals'], ascending=False, inplace=True)
+
+        feature_importance = feature_importance.head(20)
+
+        feature_importance = pd.merge(feature_importance, df_description, how="inner", on="col_name")
+        feature_importance.rename(columns={'col_name':'Variable'}, inplace=True)
+
+        st.markdown("<div id='shapley'><h3>Description des variables Shapley</h3></div></br>",
+                            unsafe_allow_html=True)
+        AgGrid(feature_importance[['Variable', 'Description']],height=500, width='100%')
+        #st.write(HTML(feature_importance[['Variable', 'Description']].to_html(index=False, escape=False)))
+        st.markdown("</br>", unsafe_allow_html=True)
+        #st.balloons()
 
         #fig = px.density_contour(df_train1[['AGE']], x='AGE')
         #fig = px.ecdf(df_train1, x="AGE", color="TARGET", markers=True, lines=False, marginal="histogram", title='Life expectancy in Canada')
