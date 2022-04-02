@@ -64,7 +64,6 @@ import re
 import time
 import requests
 
-<<<<<<< HEAD
 #import pycaret
 #from pycaret.regression import load_model, predict_model
 #from pydantic import BaseModel
@@ -325,8 +324,8 @@ def streamlit_menu(example=1):
         return selected
 
 
-<<<<<<< HEAD
-=======
+
+#=======
 #Prédiction via FastApi
 @st.cache(allow_output_mutation=True, show_spinner=False)
 def get_predictions(df):
