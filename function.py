@@ -99,7 +99,6 @@ def caract_entree():
     df = pd.DataFrame(data, index=[0])
     return df
 
-
 # --------------------------------------------------------------------------------------------------------------------
 
 def path_to_image_html(path):
