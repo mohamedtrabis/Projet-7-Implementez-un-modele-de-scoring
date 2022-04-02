@@ -72,14 +72,13 @@ import requests
 #import joblib,os
 import json
 #from fastapi.encoders import jsonable_encoder
-=======
+
 import json
 
 from st_aggrid import AgGrid
 
 #from urllib import request
 #import zipfile as zf
->>>>>>> fa60a71fd4876ccfcf195f7c86bd0ab803b71964
 
 #import st_state_patch
 
@@ -324,8 +323,6 @@ def streamlit_menu(example=1):
         return selected
 
 
-
-#=======
 #Prédiction via FastApi
 @st.cache(allow_output_mutation=True, show_spinner=False)
 def get_predictions(df):
@@ -380,5 +377,3 @@ def reduce_mem_usage(df):
     #print('Decreased by {:.1f}%'.format(100 * (start_mem - end_mem) / start_mem))
 
     return df
-
->>>>>>> fa60a71fd4876ccfcf195f7c86bd0ab803b71964
