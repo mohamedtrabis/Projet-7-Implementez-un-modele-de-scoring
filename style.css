@@ -23,7 +23,7 @@ padding: 10px;
 
 td {
 font-family:sans-serif;
-font-size:14px;
+font-size:13px;
 border:1px solid #6495ed;
 text-align:left;
 }
@@ -47,7 +47,6 @@ transition: all 700ms ease-in-out;
 td:hover {
 font-family:sans-serif;
 /*font-weight: bolder; */
-font-size:110%;
 background-color: #f4f4f4;
 }
 
@@ -115,6 +114,12 @@ box-shadow: 3px 3px rgba(0,0,0,.15);
 
 iframe{
 border:2px solid #CAC8CA;
+box-shadow: 3px 3px rgba(0,0,0,.15);
+border:2px solid #CAC8CA;
+}
+
+iframe:hover{
+border-left: 0.3rem solid red;
 }
 
 button.css-1cpxqw2 {
@@ -141,14 +146,21 @@ color: black;
 box-shadow: 10px 10px rgba(0,0,0,.15);
 transition: all .4s ease;
 margin-bottom : 20px;
+
+border-radius:20px;
+-o-border-radius:20px;
+-webkit-border-radius:20px;
+-ms-border-radius:20px;
+-moz-border-radius:20px;
 }
 
 #dash:hover {
-border-radius: 0% 0% 50% 50% / 0% 0% 20% 20% ;
-box-shadow: 10px 10px rgba(0,0,0,.30);
+/*border-radius: 0% 0% 50% 50% / 0% 0% 20% 20% ;*/
+box-shadow: 5px 5px rgba(0,0,0,.30);
 border:2px solid #CADFFA;
 padding-left: 0.5rem;
-border-left: 0.5rem solid red;
+border-left: 3rem solid red;
+border-right: 3rem solid red;
 background-color:#CADFFA;
 }
 
@@ -162,14 +174,12 @@ div img:hover{
 border-left: 0.3rem solid red;
 }
 
-div[data-baseweb="select"] > div {
+/*div[data-baseweb="select"] > div {
 background-color: #DFEAFF;
 }
 
-
-
 div[role="listbox"] ul {
 background-color: #FFF;
-}
+}*/
 
 </style>

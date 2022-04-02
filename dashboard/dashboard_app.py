@@ -1,11 +1,12 @@
-import pandas as pd
-
+# Chemin des fichiers
 #dirname = "../"
 dirname = ""
 
-exec(open(dirname+"function.py").read())
+#Importer les fonctions
+exec(open(dirname+"function.py",encoding='utf-8').read())
+
 # interact with FastAPI endpoint
-backend = "http://127.0.0.1:8000/"
+#backend = "http://127.0.0.1:8000/"
 
 
 
@@ -41,16 +42,29 @@ st.markdown("<div id='dash'><h1>Dashboard  📈</h1></div>", unsafe_allow_html=T
 #-----------------------------------------------------------------------------------------------------------------
 # Transformer les données d'entrée en données adaptées à notre modèle
 # importer la base de données
+
+#url="https://drive.google.com/file/d/1Oy0rtsr1_gH37O5TB5jtMd-u9-4XVMsb/view?usp=sharing"
+#path = 'https://drive.google.com/uc?export=download&id='+url.split('/')[-2]
+#st.write(path)
+#df = try_read_df(path)
+#st.write(df.head(3))
+
+#file = dirname+'df_train1.csv'
 file = dirname+'db/df_train1_2000.csv'
 file_desc = dirname+'db/HomeCredit_columns_description.csv'
 
+#Chargement des données
+
 description = try_read_desc(file_desc)
 df_train1 =try_read_df(file)
+#st.write(df_train1.memory_usage().sum() / 1024 ** 2)
+df_train1 = reduce_mem_usage(df_train1)
 
+#st.write(df_train1.memory_usage().sum() / 1024 ** 2)
+
+#Nettoyage du Dataframe description
 description = description.drop_duplicates(subset='Row', keep='last')
-
 df_train1  = df_train1.rename(columns = lambda x:re.sub(' ', '_', x))
-
 
 df_col_train = pd.DataFrame(list(zip(df_train1.iloc[:, 2:-2].columns)),columns=['col_name'])
 #Remplacer les chaines de caractères pour merger avec la dataframe de description
@@ -66,19 +80,20 @@ left_, mid_ ,right_ = st.columns([1,1, 1])
 
 with mid_:
     #SK_ID_CURR = st.sidebar.text_input("Entrer le code client", 100007)
-    SK_ID_CURR = st.sidebar.selectbox('Sélectionner un client', df_train1['SK_ID_CURR'].head(1000))
+    SK_ID_CURR = st.sidebar.selectbox('Sélectionner un client', df_train1['SK_ID_CURR'].head(2000))
     data = {
         'SK_ID_CURR': SK_ID_CURR,
     }
 
     input_df = pd.DataFrame(data, index=[0])
 
+threshold = st.sidebar.number_input("Seuil de solvabilité en %",15,100)
 
-# 1=sidebar menu, 2=horizontal menu, 3=horizontal menu w/ custom menu
+#Barre de menu : 1=sidebar menu, 2=horizontal menu, 3=horizontal menu w/ custom menu
 EXAMPLE_NO = 1
 selected = streamlit_menu(example=EXAMPLE_NO)
 
-
+#Afficher les données client
 donnee_entree = pd.concat([input_df, df_train1])
 
 donnee_entree = donnee_entree[:1]
@@ -141,7 +156,7 @@ lgbm_clf = pickle.load(open(dirname+'lgbm_clf.pkl', 'rb'))
 
 #Prédiction via l'API FastAPI
 #with st.spinner('Chargement des données de FastAPI ⌛'):
- #   y_pred = get_predictions(pred_client.iloc[:, 2:-2])
+    #y_pred = get_predictions(pred_client.iloc[:, 2:-2])
 
 
 #st.write(y_pred)
@@ -153,7 +168,8 @@ y_pred = lgbm_clf.predict_proba(pred_client.iloc[:, 2:-2])
 
 risk = "{:,.0f}".format(y_pred[0][1]*100)
 pred_0 = "{:,.0f}".format(y_pred[0][0]*100)
-if selected!='Description' :
+
+if selected!='Description':
 
     with st.expander("Informations Client : "+var_code, expanded=True):
         col_0, col_1, col_3, col_4  = st.columns([1,5,7,1])
@@ -169,6 +185,9 @@ if selected!='Description' :
             col_1.write(HTML(df.to_html(escape=False)))
             gauge(col_3, col_6)
 
+
+if selected == 'Rapport':
+    report(df_train1[col])
 
 if selected == "Description" or selected == "Data Client":
 
@@ -224,15 +243,12 @@ if selected == "Analyse":
 
         var = ['All','EXT_SOURCE_MEAN', 'AMT_CREDIT', 'DAYS_BIRTH', 'INS_DPD_MEAN',
                'AMT_ANNUITY', 'POS_CNT_INSTALMENT_FUTURE_MEAN', 'AMT_GOODS_PRICE',
-               'PREV_CNT_PAYMENT_MEAN',
-               'BUREAU_AMT_CREDIT_SUM_DEBT_MEAN', 'DAYS_EMPLOYED',
+               'PREV_CNT_PAYMENT_MEAN','BUREAU_AMT_CREDIT_SUM_DEBT_MEAN', 'DAYS_EMPLOYED',
                'APPROVED_AMT_ANNUITY_MEAN', 'PREV_APP_CREDIT_PERC_MEAN',
-               'DAYS_ID_PUBLISH', 'ACTIVE_DAYS_CREDIT_MEAN',
-               'INS_AMT_PAYMENT_MEAN','POS_SK_DPD_DEF_MEAN', 'CODE_GENDER',
+               'DAYS_ID_PUBLISH', 'ACTIVE_DAYS_CREDIT_MEAN', 'INS_AMT_PAYMENT_MEAN', 'CODE_GENDER',
                'PREV_DAYS_LAST_DUE_1ST_VERSION_MEAN', 'DAYS_LAST_PHONE_CHANGE',
                'INS_DAYS_ENTRY_PAYMENT_MEAN', 'INS_DBD_MEAN', 'FLAG_OWN_CAR',
-               'BUREAU_AMT_CREDIT_SUM_MEAN', 'INS_DAYS_INSTALMENT_MEAN',
-               'PREV_AMT_DOWN_PAYMENT_MEAN']
+               'BUREAU_AMT_CREDIT_SUM_MEAN', 'INS_DAYS_INSTALMENT_MEAN','PREV_AMT_DOWN_PAYMENT_MEAN']
 
         col_selected = my_form.multiselect('Sélectionner une ou plusieurs variables', var)
 
@@ -269,7 +285,9 @@ if selected == "Analyse":
         if(len(Row_list)!=0):
             df_dscr = pd.DataFrame(Row_list)
             df_dscr.columns = ['Variable', 'Description']
-            st.write(HTML(df_dscr.to_html(index=False, escape=False)))
+
+            AgGrid(df_dscr,height=200, width='100%')
+            #st.write(HTML(df_dscr.to_html(index=False, escape=False)))
             st.markdown("</br>",unsafe_allow_html=True)
 
 
@@ -278,16 +296,17 @@ if selected == "Shapley":
 #if shapley:
         # Initialize SHAP Tree explainer
         with st.spinner('Chargement des données Shapley ⌛'):
+            index_client = df_train1[df_train1['SK_ID_CURR'] == var_code].index.values[0]
+
             explainer, shap_values, expected_value = get_explainer()
 
             st.markdown("<div id='shapley'><h3>Analyse Shapley Client: "+var_code+"</h3></div></br>", unsafe_allow_html=True)
-            index_client = df_train1[df_train1['SK_ID_CURR'] == var_code].index.values[0]
 
             shap1, shap2 = st.columns(2)
             shap1.markdown("<div id='graph_shap'><h4>Decision plot</h4></div>", unsafe_allow_html=True)
             # decision_plot
             decision = shap.decision_plot(base_value=explainer.expected_value[1],
-                                          shap_values=shap_values[1][index_client],
+                                          shap_values=shap_values[1][0],
                                           features=df_train1.iloc[index_client:, 2:-2],
                                           feature_names=df_train1.iloc[:, 2:-2].columns.tolist())
 
@@ -299,19 +318,20 @@ if selected == "Shapley":
             #shap2.pyplot(shap.summary_plot(shap_values, pred_client.iloc[:, 2:-2]))
 
             shap2.pyplot(shap.plots._waterfall.waterfall_legacy(expected_value[1],
-                                                                shap_values[1][index_client],
+                                                                shap_values[1][0],
                                                                 feature_names = df_train1.iloc[:, 2:-2].columns,
                                                                 max_display = 20))
 
             st.markdown("<div id='graph_shap'><h4>Force plot</h4></div>", unsafe_allow_html=True)
             # force_plot
-            st_shap(shap.force_plot(expected_value[1], shap_values[1][index_client], df_train1.iloc[index_client, 2:-2]))
+            st_shap(shap.force_plot(expected_value[1], shap_values[1][0],
+                                    df_train1.iloc[index_client, 2:-2], text_rotation=30))
 
     with st.expander("Description des variables Shapley", expanded=True):
 
         #Extraire les variables les plus importantes
         vals = np.abs(shap_values).mean(0)
-        feature_importance = pd.DataFrame(list(zip(pred_client.iloc[:, 2:-2].columns, vals[index_client])),
+        feature_importance = pd.DataFrame(list(zip(pred_client.iloc[:, 2:-2].columns, vals[0])),
                                           columns=['col_name', 'feature_importance_vals'])
         feature_importance.sort_values(by=['feature_importance_vals'], ascending=False, inplace=True)
 
@@ -322,7 +342,8 @@ if selected == "Shapley":
 
         st.markdown("<div id='shapley'><h3>Description des variables Shapley</h3></div></br>",
                             unsafe_allow_html=True)
-        st.write(HTML(feature_importance[['Variable', 'Description']].to_html(index=False, escape=False)))
+        AgGrid(feature_importance[['Variable', 'Description']],height=500, width='100%')
+        #st.write(HTML(feature_importance[['Variable', 'Description']].to_html(index=False, escape=False)))
         st.markdown("</br>", unsafe_allow_html=True)
         #st.balloons()
 
