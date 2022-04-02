@@ -64,6 +64,7 @@ import re
 import time
 import requests
 
+<<<<<<< HEAD
 #import pycaret
 #from pycaret.regression import load_model, predict_model
 #from pydantic import BaseModel
@@ -72,10 +73,21 @@ import requests
 #import joblib,os
 import json
 #from fastapi.encoders import jsonable_encoder
+=======
+import json
+
+from st_aggrid import AgGrid
+
+#from urllib import request
+#import zipfile as zf
+>>>>>>> fa60a71fd4876ccfcf195f7c86bd0ab803b71964
 
 #import st_state_patch
 
 from PIL import Image
+
+import pandas_profiling
+from streamlit_pandas_profiling import st_profile_report
 
 #@st.cache(suppress_st_warning=True)
 def local_css(file_name):
@@ -129,7 +141,8 @@ def path_to_image_url(path):
 def get_explainer():
     lgbm_clf = pickle.load(open(dirname + 'model_best_lgbm.pkl', 'rb'))
     explainer = shap.TreeExplainer(lgbm_clf)
-    shap_values = explainer.shap_values(df_train1.iloc[:, 2:-2])
+    nb_row = index_client+1
+    shap_values = explainer.shap_values(df_train1.iloc[index_client:nb_row, 2:-2])
     expected_value = explainer.expected_value
     return explainer, shap_values, expected_value
 # ----------------------------------------------------------------------------------------------------------------
@@ -180,12 +193,12 @@ def plot_distribution_comp(var, id_client, nrow=2, ncol=2):
         j=j+1
 
         density = gaussian_kde(df_train1[feature])
-        max_density = density(df_train1[feature]).max()
+        #max_density = density(df_train1[feature]).max()
         max_features = df_train1[feature].max()
         x = client
         y = density(x)
 
-        plt.annotate(var_code+'\n'+str(x), xy=(x, y), xytext=(max_features/1.05, max_density/1.5), fontsize=10,
+        plt.annotate(var_code+'\n'+str(x), xy=(x, y), xytext=(max_features/1.05, y/1.5), fontsize=10,
                      #arrowprops=dict(facecolor='green', shrink=0.01),
                      #bbox=dict(boxstyle="round4,pad=.5", fc="0.8"),
                      #arrowprops=dict(arrowstyle="->", connectionstyle="angle,angleA=0,angleB=80,rad=20")
@@ -198,11 +211,12 @@ def plot_distribution_comp(var, id_client, nrow=2, ncol=2):
 # ----------------------------------------------------------------------------------------------------------------
 def gauge(col, col_st):
     fig = go.Figure()
-    if (float(risk) > 30):
+
+    if (float(risk) > threshold):
         fig.add_trace(go.Indicator(
 
             value=y_pred[0][1] * 100,
-            delta={'reference': 30, 'increasing': {'color': "red"}, 'decreasing': {'color': "green"}},
+            delta={'reference': threshold, 'increasing': {'color': "red"}, 'decreasing': {'color': "green"}},
             gauge={
 
                 'axis': {'range': [None, 100], 'tickwidth': 1, 'tickcolor': "darkblue",'visible': True},
@@ -210,17 +224,17 @@ def gauge(col, col_st):
                 'threshold': {
                     'line': {'color': "red", 'width': 4},
                     'thickness': 0.75,
-                    'value': 30}
+                    'value': threshold}
             },
             domain={'row': 0, 'column': 0}))
 
-        col_st.error('Cr&eacute;dit refus&eacute;')
+        col_st.error('❌ Crédit refusé')
 
     else:
         fig.add_trace(go.Indicator(
 
             value=y_pred[0][1] * 100,
-            delta={'reference': 30, 'increasing': {'color': "red"}, 'decreasing': {'color': "green"}},
+            delta={'reference': threshold, 'increasing': {'color': "red"}, 'decreasing': {'color': "green"}},
             gauge={
 
                 'axis': {'range': [None, 100], 'tickwidth': 1, 'tickcolor': "darkblue",'visible': True},
@@ -228,11 +242,11 @@ def gauge(col, col_st):
                 'threshold': {
                     'line': {'color': "red", 'width': 4},
                     'thickness': 0.75,
-                    'value': 30}
+                    'value': threshold}
             },
             domain={'row': 0, 'column': 0}))
 
-        col_st.success('Cr&eacute;dit accord&eacute;')
+        col_st.success('✔️ Crédit accordé')
 
     fig.update_layout(
         # paper_bgcolor = "lightgray",
@@ -241,16 +255,20 @@ def gauge(col, col_st):
         autosize=True,
         # width=1000,
         template={'data': {'indicator': [{
-            'title': {'text': "Defaut de paiement (< 30)", 'font': {'size': 20}},
+            'title': {'text': "Threshold = "+str(threshold)+" %", 'font': {'size': 20}},
             'mode': "number+delta+gauge",
             'delta': {'reference': 100}}]
         }})
 
     col.plotly_chart(fig, use_container_width=True)
 # ----------------------------------------------------------------------------------------------------------------
-@st.cache(allow_output_mutation=True)
+@st.cache(allow_output_mutation=True, show_spinner=False)
 def try_read_df(file):
-    return pd.read_csv(file)
+    with st.spinner('Chargement de la base de données ⌛'):
+        df =  pd.read_csv(file)
+    with st.spinner('Optimisation de la mémoire ⌛'):
+        return reduce_mem_usage(df)
+
 
 # ----------------------------------------------------------------------------------------------------------------
 @st.cache(allow_output_mutation=True)
@@ -264,8 +282,8 @@ def streamlit_menu(example=1):
         with st.sidebar:
             selected = option_menu(
                 menu_title="Home Credit",  # required
-                options=["Data Client", "Analyse", "Shapley", "Description"],  # required
-                icons=['files',"bar-chart-line-fill", "activity", "zoom-in"],  # optional
+                options=["Data Client", "Analyse", "Shapley", "Description",'Rapport'],  # required
+                icons=['files',"graph-up-arrow", "bar-chart-steps", "zoom-in", "bar-chart-line-fill"],  # optional
                 menu_icon="menu-button-wide-fill",  # optional
                 default_index=0,  # optional
             )
@@ -307,3 +325,61 @@ def streamlit_menu(example=1):
         return selected
 
 
+<<<<<<< HEAD
+=======
+#Prédiction via FastApi
+@st.cache(allow_output_mutation=True, show_spinner=False)
+def get_predictions(df):
+    df = df.to_dict('records')[0]
+    df = json.dumps(df)
+    headers = {'Content-Type': 'application/json'}
+    response = requests.request("POST", 'http://127.0.0.1:8000/predict/', headers=headers, data=df)
+    df_json = response.json()
+    return df_json
+
+#@st.cache(allow_output_mutation=True, show_spinner=False)
+def report(df):
+    pr = df.profile_report()
+    st_profile_report(pr)
+
+
+# Reduce Memory Usage
+def reduce_mem_usage(df):
+    """ iterate through all the columns of a dataframe and modify the data type
+        to reduce memory usage.
+    """
+    start_mem = df.memory_usage().sum() / 1024 ** 2
+    #print('Memory usage of dataframe is {:.2f} MB'.format(start_mem))
+
+    for col in df.columns:
+        col_type = df[col].dtype
+
+        if col_type != object and col_type.name != 'category' and 'datetime' not in col_type.name:
+            c_min = df[col].min()
+            c_max = df[col].max()
+            if str(col_type)[:3] == 'int':
+                if c_min > np.iinfo(np.int8).min and c_max < np.iinfo(np.int8).max:
+                    df[col] = df[col].astype(np.int8)
+                elif c_min > np.iinfo(np.int16).min and c_max < np.iinfo(np.int16).max:
+                    df[col] = df[col].astype(np.int16)
+                elif c_min > np.iinfo(np.int32).min and c_max < np.iinfo(np.int32).max:
+                    df[col] = df[col].astype(np.int32)
+                elif c_min > np.iinfo(np.int64).min and c_max < np.iinfo(np.int64).max:
+                    df[col] = df[col].astype(np.int64)
+            else:
+                if c_min > np.finfo(np.float16).min and c_max < np.finfo(np.float16).max:
+                    df[col] = df[col].astype(np.float16)
+                elif c_min > np.finfo(np.float32).min and c_max < np.finfo(np.float32).max:
+                    df[col] = df[col].astype(np.float32)
+                else:
+                    df[col] = df[col].astype(np.float64)
+        elif 'datetime' not in col_type.name:
+            df[col] = df[col].astype('category')
+
+    end_mem = df.memory_usage().sum() / 1024 ** 2
+    #print('Memory usage after optimization is: {:.2f} MB'.format(end_mem))
+    #print('Decreased by {:.1f}%'.format(100 * (start_mem - end_mem) / start_mem))
+
+    return df
+
+>>>>>>> fa60a71fd4876ccfcf195f7c86bd0ab803b71964
