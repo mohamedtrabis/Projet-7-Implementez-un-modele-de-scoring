@@ -138,7 +138,6 @@ def path_to_image_url(path):
 # ----------------------------------------------------------------------------------------------------------------
 #@st.cache(allow_output_mutation=True, show_spinner=False)
 def get_explainer():
-    
     lgbm_clf = pickle.load(open(dirname + 'Model/best_lgbm_over.pkl', 'rb'))
     explainer = shap.TreeExplainer(lgbm_clf.steps[0][1])
     nb_row = index_client+1
