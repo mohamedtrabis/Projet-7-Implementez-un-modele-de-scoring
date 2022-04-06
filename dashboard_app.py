@@ -69,7 +69,7 @@ df_train1  = df_train1.rename(columns = lambda x:re.sub(' ', '_', x))
 df_col_train = pd.DataFrame(list(zip(df_train1.iloc[:, 2:-2].columns)),columns=['col_name'])
 #Remplacer les chaines de caractères pour merger avec la dataframe de description
 df_col_train['Row'] = df_col_train['col_name'].str.replace(
-    r'\_MEAN|_STD|PREV_|POS_|INS_|BUREAU_|APPROVED_|APPROVED_|REFUSED_|REFUSED_|_Completed|_Rare|_Active|ACTIVE_|_Industry|_Married|_Separated|_Civil marriage|_Single / not married|_Civil_marriage|_Higher_education', '')
+    r'\_MEAN|_STD|PREV_|POS_|INS_|BUREAU_|APPROVED_|APPROVED_|REFUSED_|REFUSED_|_Completed|_Rare|_Active|ACTIVE_|_Industry|_Married|_Separated|_Civil marriage|_Single / not married|_Civil_marriage|_Higher_education', '',regex=True)
 
 df_col_train['Row'] = df_col_train['Row'].replace(['EXT_SOURCE', 'DPD', 'DBD'],
                                                   ['EXT_SOURCE_3', 'SK_DPD', 'SK_DPD'])
@@ -87,7 +87,7 @@ with mid_:
 
     input_df = caract_entree()
 
-threshold = st.sidebar.number_input("Seuil de solvabilité en %",51.89)
+threshold = st.sidebar.number_input("Seuil de solvabilité en %",min_value=0.00, max_value=100.00, value=51.89, step=1.00)
 
 #Barre de menu : 1=sidebar menu, 2=horizontal menu, 3=horizontal menu w/ custom menu
 EXAMPLE_NO = 1
