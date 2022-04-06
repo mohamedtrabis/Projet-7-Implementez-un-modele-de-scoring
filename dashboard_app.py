@@ -152,7 +152,7 @@ def form_callback():
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
 # Importer le modèle entrainé lightGBM
-lgbm_clf = pickle.load(open(dirname + 'model/best_lgbm_over.pkl', 'rb'))
+lgbm_clf = pickle.load(open(dirname + 'Model/best_lgbm_over.pkl', 'rb'))
 
 # Prediction resultat
 #tab = ['No Default', 'Default']
