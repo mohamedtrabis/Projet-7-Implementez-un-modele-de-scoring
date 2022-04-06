@@ -99,14 +99,15 @@ def st_shap(plot, height=None):
     components.html(shap_html, height=height)
 # --------------------------------------------------------------------------------------------------------------------
 def caract_entree():
-    SK_ID_CURR = st.text_input("Entrer le code client", 100007)
+    with st.spinner('Chargement de la base de données ⌛'):
+        SK_ID_CURR = st.sidebar.selectbox('Sélectionner un client', df_train1['SK_ID_CURR'])
 
-    data = {
-        'SK_ID_CURR': SK_ID_CURR,
-    }
+        data = {
+            'SK_ID_CURR': SK_ID_CURR,
+        }
 
-    df = pd.DataFrame(data, index=[0])
-    return df
+        df = pd.DataFrame(data, index=[0])
+        return df
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -135,10 +136,10 @@ def path_to_image_url(path):
 
 
 # ----------------------------------------------------------------------------------------------------------------
-@st.cache(allow_output_mutation=True, show_spinner=False)
+#@st.cache(allow_output_mutation=True, show_spinner=False)
 def get_explainer():
-    lgbm_clf = pickle.load(open(dirname + 'model_best_lgbm.pkl', 'rb'))
-    explainer = shap.TreeExplainer(lgbm_clf)
+    lgbm_clf = pickle.load(open(dirname + 'model/best_lgbm_over.pkl', 'rb'))
+    explainer = shap.TreeExplainer(lgbm_clf.steps[0][1])
     nb_row = index_client+1
     shap_values = explainer.shap_values(df_train1.iloc[index_client:nb_row, 2:-2])
     expected_value = explainer.expected_value
@@ -182,8 +183,8 @@ def plot_distribution_comp(var, id_client, nrow=2, ncol=2):
 
         if col_selected[j] in df_description['col_name'].values:
             chaine = df_description['Description'][df_description['col_name'] == col_selected[j]].head(1).values[0]
-            if (len(chaine)>70):
-                title = str(chaine)[0:70]+'...'
+            if (len(chaine)>100):
+                title = str(chaine)[0:100]+'...'
             else :
                 title = chaine
             #st.sidebar.write(col_selected[j]+' : '+title)
@@ -267,11 +268,18 @@ def try_read_df(file):
     with st.spinner('Optimisation de la mémoire ⌛'):
         return reduce_mem_usage(df)
 
+@st.cache(allow_output_mutation=True, show_spinner=False)
+def load_data(file):
+    with st.spinner('Chargement de la base de données ⌛'):
+        df = pd.read_csv(file, compression='gzip')
+    with st.spinner('Optimisation de la mémoire ⌛'):
+        return reduce_mem_usage(df)
 
 # ----------------------------------------------------------------------------------------------------------------
 @st.cache(allow_output_mutation=True)
 def try_read_desc(file):
-    return pd.read_csv(file, encoding= 'unicode_escape', usecols=['Row','Description'])
+    df_desc =  pd.read_csv(file, encoding= 'unicode_escape', usecols=['Row','Description'])
+    return reduce_mem_usage(df_desc)
 
 # ----------------------------------------------------------------------------------------------------------------
 def streamlit_menu(example=1):
@@ -280,8 +288,12 @@ def streamlit_menu(example=1):
         with st.sidebar:
             selected = option_menu(
                 menu_title="Home Credit",  # required
-                options=["Data Client", "Analyse", "Shapley", "Description",'Rapport'],  # required
-                icons=['files',"graph-up-arrow", "bar-chart-steps", "zoom-in", "bar-chart-line-fill"],  # optional
+                options=["Data Client", "Analyse", "Shapley", "Description",
+                         #Rapport
+                         ],  # required
+                icons=['files',"bar-chart-line-fill", "bar-chart-steps", "zoom-in",
+                       #"graph-up-arrow"
+                       ],  # optional
                 menu_icon="menu-button-wide-fill",  # optional
                 default_index=0,  # optional
             )
