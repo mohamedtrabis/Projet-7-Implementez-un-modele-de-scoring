@@ -147,15 +147,15 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 # Requete via FASTAPI pour la prédiction client-------------------------------------------------------------------------
 
 # Importer le modèle entrainé lightGBM
-#lgbm_clf = pickle.load(open(dirname + 'Model/best_lgbm_over.pkl', 'rb'))
+lgbm_clf = pickle.load(open(dirname + 'Model/best_lgbm_over.pkl', 'rb'))
 
 # Prediction resultat
 #tab = ['No Default', 'Default']
-#y_pred = lgbm_clf.predict_proba(pred_client.iloc[:, 2:-2])
+y_pred = lgbm_clf.predict_proba(pred_client.iloc[:, 2:-2])
 
 #Prédiction via l'API FastAPI
-with st.spinner('Chargement des données de FastAPI ⌛'):
-    y_pred = get_predictions(pred_client.iloc[:, 2:-2])
+#with st.spinner('Chargement des données de FastAPI ⌛'):
+ #   y_pred = get_predictions(pred_client.iloc[:, 2:-2])
 # Fin Requete via FASTAPI pour la prédiction client---------------------------------------------------------------------
 
 #Calculer le rique du prêt----------------------------------------------------------------------------------------------
