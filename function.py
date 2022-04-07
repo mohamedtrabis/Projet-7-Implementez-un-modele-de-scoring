@@ -7,48 +7,15 @@ import streamlit.components.v1 as components
 import shap
 import seaborn as sns
 import plotly.graph_objects as go
+from streamlit import caching
+from datetime import date
 import plotly.express as px
-
-from sklearn.manifold import TSNE
-from sklearn.decomposition import PCA
-
-from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder, OrdinalEncoder, LabelEncoder, \
-    LabelBinarizer
-from sklearn import metrics
-from sklearn.metrics import adjusted_rand_score, classification_report, ConfusionMatrixDisplay
-
-from sklearn.ensemble import IsolationForest
-from sklearn.metrics import confusion_matrix
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-
-from xgboost import XGBClassifier
-from xgboost import plot_importance
 
 import lightgbm as lgbm
 
-from sklearn.decomposition import PCA
 
-from sklearn.impute import KNNImputer
-
-from sklearn.model_selection import train_test_split, cross_val_score, validation_curve, GridSearchCV, \
-    RandomizedSearchCV
-from sklearn import metrics
-from sklearn import preprocessing
-from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder, OrdinalEncoder, LabelBinarizer
-
-from sklearn import linear_model
-from sklearn.linear_model import Ridge
-from sklearn.linear_model import Lasso
-from sklearn.metrics import accuracy_score, f1_score
-from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor
 
 from sklearn.pipeline import make_pipeline, Pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn.svm import SVC
-from sklearn.datasets import make_classification
-from sklearn.impute import SimpleImputer
-from sklearn.compose import make_column_transformer, make_column_selector, ColumnTransformer
 import lightgbm as lgbm
 from IPython.core.display import display, HTML
 
@@ -134,11 +101,36 @@ def path_to_image_url(path):
 
     return '<div class ="image" ><img class="url" src="' + path + '""/></div>'
 
+#Supprimer le cache chaque jour-----------------------------------------------------------------------------------------
+def cache_clear_dt(dummy):
+    clear_dt = date.today()
+    return clear_dt
+if cache_clear_dt("dummy")<date.today():
+    caching.clear_cache()
+# ----------------------------------------------------------------------------------------------------------------
+def try_read_df(file):
+    with st.spinner('Chargement de la base de données ⌛'):
+        df =  pd.read_csv(file)
+    with st.spinner('Optimisation de la mémoire ⌛'):
+        return reduce_mem_usage(df)
 
+@st.cache(allow_output_mutation=True, show_spinner=False, ttl =3600)
+def load_data(file):
+    with st.spinner('Chargement de la base de données ⌛'):
+        df = pd.read_csv(file, compression='gzip')
+    with st.spinner('Optimisation de la mémoire ⌛'):
+        return reduce_mem_usage(df)
+
+# ----------------------------------------------------------------------------------------------------------------
+@st.cache(allow_output_mutation=True, show_spinner=False, ttl =3600)
+def try_read_desc(file):
+    with st.spinner('Chargement des données ⌛'):
+        df_desc =  pd.read_csv(file, encoding= 'unicode_escape', usecols=['Row','Description'])
+        return reduce_mem_usage(df_desc)
 # ----------------------------------------------------------------------------------------------------------------
 #@st.cache(allow_output_mutation=True, show_spinner=False)
 def get_explainer():
-    lgbm_clf = pickle.load(open(dirname + 'Model/best_lgbm_over.pkl', 'rb')) 
+    lgbm_clf = pickle.load(open(dirname + 'Model/best_lgbm_over.pkl', 'rb'))
     explainer = shap.TreeExplainer(lgbm_clf.steps[0][1])
     nb_row = index_client+1
     shap_values = explainer.shap_values(df_train1.iloc[index_client:nb_row, 2:-2])
@@ -260,26 +252,6 @@ def gauge(col, col_st):
         }})
 
     col.plotly_chart(fig, use_container_width=True)
-# ----------------------------------------------------------------------------------------------------------------
-@st.cache(allow_output_mutation=True, show_spinner=False)
-def try_read_df(file):
-    with st.spinner('Chargement de la base de données ⌛'):
-        df =  pd.read_csv(file)
-    with st.spinner('Optimisation de la mémoire ⌛'):
-        return reduce_mem_usage(df)
-
-@st.cache(allow_output_mutation=True, show_spinner=False)
-def load_data(file):
-    with st.spinner('Chargement de la base de données ⌛'):
-        df = pd.read_csv(file, compression='gzip')
-    with st.spinner('Optimisation de la mémoire ⌛'):
-        return reduce_mem_usage(df)
-
-# ----------------------------------------------------------------------------------------------------------------
-@st.cache(allow_output_mutation=True)
-def try_read_desc(file):
-    df_desc =  pd.read_csv(file, encoding= 'unicode_escape', usecols=['Row','Description'])
-    return reduce_mem_usage(df_desc)
 
 # ----------------------------------------------------------------------------------------------------------------
 def streamlit_menu(example=1):
@@ -336,7 +308,7 @@ def streamlit_menu(example=1):
 
 
 #Prédiction via FastApi
-@st.cache(allow_output_mutation=True, show_spinner=False)
+#@st.cache(allow_output_mutation=True, show_spinner=False)
 def get_predictions(df):
     df = df.to_dict('records')[0]
     df = json.dumps(df)
