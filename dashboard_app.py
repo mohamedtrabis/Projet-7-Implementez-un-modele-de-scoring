@@ -2,14 +2,11 @@
 #dirname = "../"
 dirname = ""
 
-#Importer les fonctions
+#Importer les fonctions-------------------------------------------------------------------------------------------------
 exec(open(dirname+"function.py",encoding='utf-8').read())
+#Fin Importation les fonctions------------------------------------------------------------------------------------------
 
-# interact with FastAPI endpoint
-#backend = "http://127.0.0.1:8000/"
-
-
-
+#Config streamlit affichage---------------------------------------------------------------------------------------------
 from PIL import Image
 st.set_page_config(
     page_title="Home Credit",
@@ -17,13 +14,18 @@ st.set_page_config(
     initial_sidebar_state="expanded",
     page_icon = 'Image/logo_home_credit.gif',
 )
+#Fin Config streamlit affichage-----------------------------------------------------------------------------------------
 
 #s = st.session_state
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
+#Feuille de style css---------------------------------------------------------------------------------------------------
 local_css(dirname+"style.css")
+#Fin Feuille de style css-----------------------------------------------------------------------------------------------
+
 pd.options.display.float_format = '{:,.2f}'.format
 
+#Image logo entreprise--------------------------------------------------------------------------------------------------
 image_logo = Image.open("Image/home credit1.jpg")
 newsize = (464, 283)
 
@@ -32,50 +34,40 @@ left, mid ,right = st.columns([1,2, 1])
 with mid:
     image_logo = image_logo.resize(newsize)
     st.image(image_logo, '')
+#Fin Image logo entreprise----------------------------------------------------------------------------------------------
 
 #st.header("Dashboard 📈")
 st.markdown("<div id='dash'><h1>Dashboard  📈</h1></div>", unsafe_allow_html=True)
 
-# Create a page dropdown
-#page = st.sidebar.radio("Choisissez votre Application",["LightGBM", "XGBoost"])
+#Importation des fichier data-------------------------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------------------------------------------
-# Transformer les données d'entrée en données adaptées à notre modèle
-# importer la base de données
-
-#url="https://drive.google.com/file/d/1Oy0rtsr1_gH37O5TB5jtMd-u9-4XVMsb/view?usp=sharing"
-#path = 'https://drive.google.com/uc?export=download&id='+url.split('/')[-2]
-#st.write(path)
-#df = try_read_df(path)
-#st.write(df.head(3))
-
-#file = dirname+'df_train1.csv'
-file = dirname+r"db/df_train1.gz"
+#file = dirname+r"db/df_train1.gz"
+file = dirname+r"db/df_train1_2000.gz"
 file_desc = dirname+'db/HomeCredit_columns_description.csv'
-#r"../db/df_train1.gz"
+
 #Chargement des données
 df_train1 = load_data(file)
-
 description = try_read_desc(file_desc)
-#st.write(df_train1.memory_usage().sum() / 1024 ** 2)
-df_train1 = reduce_mem_usage(df_train1)
+#Importation des fichier data-------------------------------------------------------------------------------------------
 
 #st.write(df_train1.memory_usage().sum() / 1024 ** 2)
 
-#Nettoyage du Dataframe description
+#Nettoyage du Dataframe description-------------------------------------------------------------------------------------
 description = description.drop_duplicates(subset='Row', keep='last')
 df_train1  = df_train1.rename(columns = lambda x:re.sub(' ', '_', x))
 
 df_col_train = pd.DataFrame(list(zip(df_train1.iloc[:, 2:-2].columns)),columns=['col_name'])
 #Remplacer les chaines de caractères pour merger avec la dataframe de description
 df_col_train['Row'] = df_col_train['col_name'].str.replace(
-    r'\_MEAN|_STD|PREV_|POS_|INS_|BUREAU_|APPROVED_|APPROVED_|REFUSED_|REFUSED_|_Completed|_Rare|_Active|ACTIVE_|_Industry|_Married|_Separated|_Civil marriage|_Single / not married|_Civil_marriage|_Higher_education', '',regex=True)
+    r'\_MEAN|_STD|PREV_|POS_|INS_|BUREAU_|APPROVED_|APPROVED_|REFUSED_|REFUSED_|_Completed|_Rare|_Active|Active_|_Industry|_Married|_Separated|_Civil marriage|_Single / not married|_Civil_marriage|_Higher_education|_Closed|CLOSED_', '',regex=True)
 
 df_col_train['Row'] = df_col_train['Row'].replace(['EXT_SOURCE', 'DPD', 'DBD'],
                                                   ['EXT_SOURCE_3', 'SK_DPD', 'SK_DPD'])
 
 df_description = pd.merge(df_col_train, description, how="inner", on="Row")
+#Fin du nettoyage du Dataframe description------------------------------------------------------------------------------
 
+#Affichage sidebar client et seuil--------------------------------------------------------------------------------------
 left_, mid_ ,right_ = st.columns([1,1, 1])
 
 with mid_:
@@ -88,12 +80,15 @@ with mid_:
     input_df = caract_entree()
 
 threshold = st.sidebar.number_input("Seuil de solvabilité en %",min_value=0.00, max_value=100.00, value=51.89, step=1.00)
+#Fin Affichage sidebar client et seuil----------------------------------------------------------------------------------
 
+#Choix barre menu à gauche----------------------------------------------------------------------------------------------
 #Barre de menu : 1=sidebar menu, 2=horizontal menu, 3=horizontal menu w/ custom menu
 EXAMPLE_NO = 1
 selected = streamlit_menu(example=EXAMPLE_NO)
+#Fin Choix barre menu à gauche------------------------------------------------------------------------------------------
 
-#Afficher les données client
+#Préparer les données client--------------------------------------------------------------------------------------------
 donnee_entree = pd.concat([input_df, df_train1])
 
 donnee_entree = donnee_entree[:1]
@@ -130,13 +125,9 @@ pred_client = df_train1[df_train1['SK_ID_CURR'] == var_code]
 if len(pred_client)==0:
     st.write('No data found')
     st.stop()
+#Fin Préparer les données client----------------------------------------------------------------------------------------
 
-
-#plot_client = st.sidebar.checkbox('Analyse données client')
-#shapley = st.sidebar.checkbox('Analyse Shapley')
-#colonne_descr = st.sidebar.checkbox('Description des variables')
-#initialize session state
-
+#Gestion session--------------------------------------------------------------------------------------------------------
 #initialize session state
 if "load_state" not in st.session_state :
     st.session_state.load_state = False
@@ -147,25 +138,32 @@ if "tab" not in st.session_state:
 def form_callback():
     if len(col_descr) != 0 :
         st.session_state['tab'] = col_descr
+#Fin Gestion session----------------------------------------------------------------------------------------------------
 
-# -------------------------------------------------------------------------------------------------------------
+# Suuprimer les message warning-----------------------------------------------------------------------------------------
 st.set_option('deprecation.showPyplotGlobalUse', False)
+# Fin Suuprimer les message warning-------------------------------------------------------------------------------------
+
+# Requete via FASTAPI pour la prédiction client-------------------------------------------------------------------------
 
 # Importer le modèle entrainé lightGBM
-lgbm_clf = pickle.load(open(dirname + 'Model/best_lgbm_over.pkl', 'rb'))
+#lgbm_clf = pickle.load(open(dirname + 'Model/best_lgbm_over.pkl', 'rb'))
 
 # Prediction resultat
 #tab = ['No Default', 'Default']
-y_pred = lgbm_clf.predict_proba(pred_client.iloc[:, 2:-2])
+#y_pred = lgbm_clf.predict_proba(pred_client.iloc[:, 2:-2])
 
 #Prédiction via l'API FastAPI
-#with st.spinner('Chargement des données de FastAPI ⌛'):
- #   y_pred = get_predictions(pred_client.iloc[:, 2:-2])
+with st.spinner('Chargement des données de FastAPI ⌛'):
+    y_pred = get_predictions(pred_client.iloc[:, 2:-2])
+# Fin Requete via FASTAPI pour la prédiction client---------------------------------------------------------------------
 
-
+#Calculer le rique du prêt----------------------------------------------------------------------------------------------
 risk = "{:,.0f}".format(y_pred[0][1]*100)
 pred_0 = "{:,.0f}".format(y_pred[0][0]*100)
+#Fin Calculer le rique du prêt------------------------------------------------------------------------------------------
 
+#Onglet Description-----------------------------------------------------------------------------------------------------
 if selected!='Description':
 
     with st.expander("Informations Client : "+var_code, expanded=True):
@@ -182,10 +180,14 @@ if selected!='Description':
             col_1.write(HTML(df.to_html(escape=False)))
             gauge(col_3, col_6)
 
+#Fin Onglet Description-------------------------------------------------------------------------------------------------
 
+#Onglet Rapport---------------------------------------------------------------------------------------------------------
 #if selected == 'Rapport':
 #    report(df_train1[col])
+#Fin Onglet Rapport-----------------------------------------------------------------------------------------------------
 
+#Onglet Data Client-----------------------------------------------------------------------------------------------------
 if selected == "Description" or selected == "Data Client":
 
     with st.expander("Description des variables", expanded=True):
@@ -226,10 +228,9 @@ if selected == "Description" or selected == "Data Client":
         #st.write(HTML(description[['Row','Description']][description['Row']==select_desc].head(1).to_html(index = False, escape=False)))
         #st.markdown("</br>", unsafe_allow_html=True)
 
+#Fin Onglet Data Client-------------------------------------------------------------------------------------------------
 
-# Create a list of possible values and multiselect menu with them in it.
-# first we let streamlit know that we will be making a form
-
+#Onglet Analyse---------------------------------------------------------------------------------------------------------
 if selected == "Analyse":
     with st.expander("Analyse Client : "+var_code, expanded=True):
         my_form = st.form(key="form")
@@ -238,7 +239,7 @@ if selected == "Analyse":
         my_form.markdown("<div id='shapley'><h3>Analyse Client : "+var_code+"</h3></div></br>", unsafe_allow_html=True)
 
 
-        var = ['All','EXT_SOURCE_MEAN', 'AMT_CREDIT', 'DAYS_BIRTH', 'INS_DPD_MEAN',
+        var = ['All','EXT_SOURCE_MEAN', 'AMT_CREDIT', 'DAYS_BIRTH',
                'AMT_ANNUITY', 'POS_CNT_INSTALMENT_FUTURE_MEAN', 'AMT_GOODS_PRICE',
                'PREV_CNT_PAYMENT_MEAN','BUREAU_AMT_CREDIT_SUM_DEBT_MEAN', 'DAYS_EMPLOYED',
                'APPROVED_AMT_ANNUITY_MEAN', 'PREV_APP_CREDIT_PERC_MEAN',
@@ -286,8 +287,9 @@ if selected == "Analyse":
             AgGrid(df_dscr,height=200, width='100%')
             #st.write(HTML(df_dscr.to_html(index=False, escape=False)))
             st.markdown("</br>",unsafe_allow_html=True)
+#Fin Onglet Analyse-----------------------------------------------------------------------------------------------------
 
-
+#Fin Onglet Shapley-----------------------------------------------------------------------------------------------------
 if selected == "Shapley":
     with st.expander("Analyse Shapley client: "+var_code, expanded=True):
 #if shapley:
@@ -343,23 +345,4 @@ if selected == "Shapley":
         #st.write(HTML(feature_importance[['Variable', 'Description']].to_html(index=False, escape=False)))
         st.markdown("</br>", unsafe_allow_html=True)
         #st.balloons()
-
-        #fig = px.density_contour(df_train1[['AGE']], x='AGE')
-        #fig = px.ecdf(df_train1, x="AGE", color="TARGET", markers=True, lines=False, marginal="histogram", title='Life expectancy in Canada')
-        #st.write(fig)
-
-        #explainer = shap.Explainer(xgb_clf, X_train)
-        #st.pyplot(shap.plots.waterfall(shap_values[0]))
-        # decision_plot
-        # ecision = shap.decision_plot(base_value=expected_value,
-        # shap_values=shap_values[0][index_client],
-        # features=X_test,
-        # feature_names=X_test.columns.tolist(),
-        # link='logit')
-
-        # st.pyplot(decision)
-        # st.pyplot(fig,bbox_inches='tight',dpi=300,pad_inches=0)
-
-        # Summarize the effects of all the features
-        # st.pyplot(shap.summary_plot(shap_values[4], pred_client.iloc[:, 2:]))
-    # --------------------------------------------------------------------------------------------------------------------
+# Fin Onglet Shapley----------------------------------------------------------------------------------------------------
