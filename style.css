@@ -81,11 +81,14 @@ border:1px dotted #6495ed;
 background-color:#EFF6FF;
 font-size:16px;
 font-weight: bold;
+height:40px;
 }
 
 div.streamlit-expanderHeader:hover{
 background-color:#CADFFA;
 color: black;
+color:red;
+border-bottom: 0.2rem solid red;
 }
 
 
@@ -159,8 +162,8 @@ border-radius:20px;
 box-shadow: 5px 5px rgba(0,0,0,.30);
 border:2px solid #CADFFA;
 padding-left: 0.5rem;
-border-left: 3rem solid red;
-border-right: 3rem solid red;
+border-left: 1rem solid red;
+border-right: 1rem solid red;
 background-color:#CADFFA;
 }
 
