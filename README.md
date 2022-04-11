@@ -1,4 +1,4 @@
-<p align="center"><h1>Projet-7-Implementez-un-modele-de-scoring</h1></p>
+<p align="center"><h1>Projet 7-Implementez un modele de scoring</h1></p>
 
 <p align="center">
   <img src="https://github.com/mohamedtrabis/Projet-7-Implementez-un-modele-de-scoring/blob/main/Image/depenser.png" width="300" title="hover text">
