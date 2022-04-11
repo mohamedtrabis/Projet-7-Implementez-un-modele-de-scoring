@@ -1,7 +1,7 @@
 <p align="center"><h1>Projet-7-Implementez-un-modele-de-scoring</h1></p>
 
 <p align="center">
-  <img src="https://github.com/mohamedtrabis/Projet-7-Implementez-un-modele-de-scoring/blob/main/Image/depenser.pnghttps://github.com/mohamedtrabis/Projet-7-Implementez-un-modele-de-scoring/blob/main/Image/depenser.png" width="300" title="hover text">
+  <img src="https://github.com/mohamedtrabis/Projet-7-Implementez-un-modele-de-scoring/blob/main/Image/depenser.png" width="300" title="hover text">
 </p>
 
 ## Contexte
@@ -18,6 +18,6 @@ Prêt à dépenser décide donc de développer un dashboard interactif pour que 
 - Construire un dashboard interactif à destination des gestionnaires de la relation client permettant d'interpréter les prédictions faites par le modèle, et d’améliorer la connaissance client des chargés de relation client.
 
 ## Les données
-<p>Voici <a href="https://www.kaggle.com/c/home-credit-default-risk/data" les données></a> dont vous aurez besoin pour réaliser le dashboard. </p>
-</p>Pour plus de simplicité, vous pouvez les télécharger à cette adresse.</p>
+<p>Voici <a href="https://www.kaggle.com/c/home-credit-default-risk/data">les données</a> dont vous aurez besoin pour réaliser le dashboard. </p>
+</p>Pour plus de simplicité, vous pouvez les télécharger à <a href="https://s3-eu-west-1.amazonaws.com/static.oc-static.com/prod/courses/files/Parcours_data_scientist/Projet+-+Impl%C3%A9menter+un+mod%C3%A8le+de+scoring/Projet+Mise+en+prod+-+home-credit-default-risk.zip">cette adresse</a>.</p>
 
