@@ -26,13 +26,13 @@ local_css(dirname+"style.css")
 pd.options.display.float_format = '{:,.2f}'.format
 
 #Image logo entreprise--------------------------------------------------------------------------------------------------
-image_logo = Image.open("Image/home credit1.jpg")
-newsize = (464, 283)
+image_logo = Image.open("Image/depenser.png")
+#newsize = (464, 283)
 
-left, mid ,right = st.columns([1,2, 1])
+left, mid ,right = st.columns([1,1, 1])
 
 with mid:
-    image_logo = image_logo.resize(newsize)
+    #image_logo = image_logo.resize(newsize)
     st.image(image_logo, '')
 #Fin Image logo entreprise----------------------------------------------------------------------------------------------
 
@@ -40,13 +40,16 @@ with mid:
 st.markdown("<div id='dash'><h1>Dashboard  📈</h1></div>", unsafe_allow_html=True)
 
 #Importation des fichier data-------------------------------------------------------------------------------------------
-
-file = dirname+r"db/df_train1.gz"
-#file = dirname+r"db/df_train1_2000.gz"
+#file = dirname+r"db/df_train1.gz"
+file = dirname+r"db/df_train1_2000.gz"
 file_desc = dirname+'db/HomeCredit_columns_description.csv'
-
+import dask.dataframe as dd
 #Chargement des données
+#s_time = time.time()
 df_train1 = load_data(file)
+#e_time = time.time()
+#st.write("Read without chunks: ", (e_time - s_time), "seconds")
+
 description = try_read_desc(file_desc)
 #Importation des fichier data-------------------------------------------------------------------------------------------
 
@@ -79,7 +82,7 @@ with mid_:
 
     input_df = caract_entree()
 
-threshold = st.sidebar.number_input("Seuil de solvabilité en %",min_value=0.00, max_value=100.00, value=51.89, step=1.00)
+threshold = st.sidebar.number_input("Seuil de solvabilité en %",min_value=0.00, max_value=100.00, value=71.40, step=1.00)
 #Fin Affichage sidebar client et seuil----------------------------------------------------------------------------------
 
 #Choix barre menu à gauche----------------------------------------------------------------------------------------------
@@ -147,15 +150,15 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 # Requete via FASTAPI pour la prédiction client-------------------------------------------------------------------------
 
 # Importer le modèle entrainé lightGBM
-lgbm_clf = pickle.load(open(dirname + 'Model/best_lgbm_over.pkl', 'rb'))
+#lgbm_clf = pickle.load(open(dirname + 'Model/best_lgbm_over.pkl', 'rb'))
 
 # Prediction resultat
 #tab = ['No Default', 'Default']
-y_pred = lgbm_clf.predict_proba(pred_client.iloc[:, 2:-2])
+#y_pred = lgbm_clf.predict_proba(pred_client.iloc[:, 2:-2])
 
 #Prédiction via l'API FastAPI
-#with st.spinner('Chargement des données de FastAPI ⌛'):
- #   y_pred = get_predictions(pred_client.iloc[:, 2:-2])
+with st.spinner('Chargement des données de FastAPI ⌛'):
+    y_pred = get_predictions(pred_client.iloc[:, 2:-2])
 # Fin Requete via FASTAPI pour la prédiction client---------------------------------------------------------------------
 
 #Calculer le rique du prêt----------------------------------------------------------------------------------------------
@@ -163,7 +166,7 @@ risk = "{:,.0f}".format(y_pred[0][1]*100)
 pred_0 = "{:,.0f}".format(y_pred[0][0]*100)
 #Fin Calculer le rique du prêt------------------------------------------------------------------------------------------
 
-#Onglet Description-----------------------------------------------------------------------------------------------------
+#Tableau client transposé-----------------------------------------------------------------------------------------------
 if selected!='Description':
 
     with st.expander("Informations Client : "+var_code, expanded=True):
@@ -180,7 +183,7 @@ if selected!='Description':
             col_1.write(HTML(df.to_html(escape=False)))
             gauge(col_3, col_6)
 
-#Fin Onglet Description-------------------------------------------------------------------------------------------------
+#Fin Tableau client transposé-------------------------------------------------------------------------------------------
 
 #Onglet Rapport---------------------------------------------------------------------------------------------------------
 #if selected == 'Rapport':
@@ -210,6 +213,7 @@ if selected == "Description" or selected == "Data Client":
             if (len(col_descr) == 0):
                 form_descr.error('❌ Sélectionner au moins une variable')
                 st.stop()
+
             Row_list=[]
             for index, rows in description.iterrows():
                 for i in range(len(col_descr)):
@@ -239,13 +243,12 @@ if selected == "Analyse":
         my_form.markdown("<div id='shapley'><h3>Analyse Client : "+var_code+"</h3></div></br>", unsafe_allow_html=True)
 
 
-        var = ['All','EXT_SOURCE_MEAN', 'AMT_CREDIT', 'DAYS_BIRTH',
+        var = ['All','EXT_SOURCE_MEAN', 'AMT_CREDIT', 'DAYS_BIRTH','FLAG_OWN_CAR','FLAG_OWN_REALTY',
                'AMT_ANNUITY', 'POS_CNT_INSTALMENT_FUTURE_MEAN', 'AMT_GOODS_PRICE',
                'PREV_CNT_PAYMENT_MEAN','BUREAU_AMT_CREDIT_SUM_DEBT_MEAN', 'DAYS_EMPLOYED',
                'APPROVED_AMT_ANNUITY_MEAN', 'PREV_APP_CREDIT_PERC_MEAN',
                'DAYS_ID_PUBLISH', 'ACTIVE_DAYS_CREDIT_MEAN', 'INS_AMT_PAYMENT_MEAN', 'CODE_GENDER',
-               'PREV_DAYS_LAST_DUE_1ST_VERSION_MEAN', 'DAYS_LAST_PHONE_CHANGE',
-               'INS_DAYS_ENTRY_PAYMENT_MEAN', 'INS_DBD_MEAN', 'FLAG_OWN_CAR',
+               'PREV_DAYS_LAST_DUE_1ST_VERSION_MEAN', 'DAYS_LAST_PHONE_CHANGE','INS_DAYS_ENTRY_PAYMENT_MEAN',
                'BUREAU_AMT_CREDIT_SUM_MEAN', 'INS_DAYS_INSTALMENT_MEAN','PREV_AMT_DOWN_PAYMENT_MEAN']
 
         col_selected = my_form.multiselect('Sélectionner une ou plusieurs variables', var)
@@ -324,7 +327,7 @@ if selected == "Shapley":
             st.markdown("<div id='graph_shap'><h4>Force plot</h4></div>", unsafe_allow_html=True)
             # force_plot
             st_shap(shap.force_plot(expected_value[1], shap_values[1][0],
-                                    df_train1.iloc[index_client, 2:-2], text_rotation=30))
+                                    df_train1.iloc[index_client, 2:-2]))
 
     with st.expander("Description des variables Shapley", expanded=True):
 
