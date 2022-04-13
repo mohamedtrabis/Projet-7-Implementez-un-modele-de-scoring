@@ -43,7 +43,7 @@ st.markdown("<div id='dash'><h1>Dashboard  📈</h1></div>", unsafe_allow_html=T
 #file = dirname+r"db/df_train1.gz"
 file = dirname+r"db/df_train1_2000.gz"
 file_desc = dirname+'db/HomeCredit_columns_description.csv'
-import dask.dataframe as dd
+
 #Chargement des données
 #s_time = time.time()
 df_train1 = load_data(file)
