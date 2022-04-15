@@ -82,7 +82,7 @@ with mid_:
 
     input_df = caract_entree()
 
-threshold = st.sidebar.number_input("Seuil de solvabilité en %",min_value=0.00, max_value=100.00, value=71.40, step=1.00)
+threshold = st.sidebar.number_input("Seuil de solvabilité en %",min_value=0.00, max_value=100.00, value=76.80, step=1.00)
 #Fin Affichage sidebar client et seuil----------------------------------------------------------------------------------
 
 #Choix barre menu à gauche----------------------------------------------------------------------------------------------
