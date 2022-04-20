@@ -40,8 +40,8 @@ with mid:
 st.markdown("<div id='dash'><h1>Dashboard  📈</h1></div>", unsafe_allow_html=True)
 
 #Importation des fichier data-------------------------------------------------------------------------------------------
-file = dirname+r"db/df_train1.gz"
-#file = dirname+r"db/df_train1_2000.gz"
+#file = dirname+r"db/df_train1.gz"
+file = dirname+r"db/df_train1_2000.gz"
 file_desc = dirname+'db/HomeCredit_columns_description.csv'
 
 #Chargement des données
@@ -82,7 +82,7 @@ with mid_:
 
     input_df = caract_entree()
 
-threshold = st.sidebar.number_input("Seuil de solvabilité en %",min_value=0.00, max_value=100.00, value=72.70, step=1.00)
+threshold = st.sidebar.number_input("Seuil de solvabilité en %",min_value=0.00, max_value=100.00, value=75.00, step=1.00)
 #Fin Affichage sidebar client et seuil----------------------------------------------------------------------------------
 
 #Choix barre menu à gauche----------------------------------------------------------------------------------------------
