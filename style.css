@@ -188,7 +188,10 @@ div img:hover{
 border-left: 0.3rem solid red;
 }
 
-#MainMenu {visibility: hidden;}
+/*Hide menu streamlit*/
+/*#MainMenu {visibility: hidden;}*/
+
+
 /*div[data-baseweb="select"] > div {
 background-color: #DFEAFF;
 }
