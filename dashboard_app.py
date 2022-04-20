@@ -40,8 +40,8 @@ with mid:
 st.markdown("<div id='dash'><h1>Dashboard  📈</h1></div>", unsafe_allow_html=True)
 
 #Importation des fichier data-------------------------------------------------------------------------------------------
-#file = dirname+r"db/df_train1.gz"
-file = dirname+r"db/df_train1_2000.gz"
+file = dirname+r"db/df_train1.gz"
+#file = dirname+r"db/df_train1_2000.gz"
 file_desc = dirname+'db/HomeCredit_columns_description.csv'
 
 #Chargement des données
