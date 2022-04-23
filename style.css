@@ -177,7 +177,7 @@ border-left: 1rem solid red;
 border-right: 1rem solid red;
 background-color:#CADFFA;
 }
- 
+
 img {
 border:2px solid #CAC8CA;
 box-shadow: 3px 3px rgba(0,0,0,.15);
@@ -188,7 +188,7 @@ border-left: 0.3rem solid red;
 }
 
 /*Hide menu streamlit*/
-/*#MainMenu {visibility: hidden;}*/
+#MainMenu {visibility: hidden;}
 
 
 /*div[data-baseweb="select"] > div {
