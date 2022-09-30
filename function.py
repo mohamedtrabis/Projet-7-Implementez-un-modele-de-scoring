@@ -1,3 +1,4 @@
+#Importation des packages-----------------------------------------------------------------------------------------------
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -10,49 +11,24 @@ import plotly.graph_objects as go
 from streamlit import caching
 from datetime import date
 import plotly.express as px
-
 import lightgbm as lgbm
-
-
-
 from sklearn.pipeline import make_pipeline, Pipeline
 import lightgbm as lgbm
 from IPython.core.display import display, HTML
-
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, f1_score
-
 from scipy.stats import gaussian_kde
-
 from streamlit_option_menu import option_menu
-
 import re
-
 import time
 import requests
-
-#import pycaret
-#from pycaret.regression import load_model, predict_model
-#from pydantic import BaseModel
-#from fastapi import FastAPI
-#import uvicorn
-#import joblib,os
 import json
-#from fastapi.encoders import jsonable_encoder
-
 import json
-
 from st_aggrid import AgGrid
-
-#from urllib import request
-#import zipfile as zf
-
-#import st_state_patch
-
+from st_aggrid.grid_options_builder import GridOptionsBuilder
 from PIL import Image
-
 import pandas_profiling
 from streamlit_pandas_profiling import st_profile_report
+#import dask.dataframe as dd
+#Fin Importation des packages-----------------------------------------------------------------------------------------------
 
 #@st.cache(suppress_st_warning=True)
 def local_css(file_name):
@@ -110,7 +86,7 @@ if cache_clear_dt("dummy")<date.today():
 # ----------------------------------------------------------------------------------------------------------------
 def try_read_df(file):
     with st.spinner('Chargement de la base de données ⌛'):
-        df =  pd.read_csv(file)
+        df = pd.read_csv(file)
     with st.spinner('Optimisation de la mémoire ⌛'):
         return reduce_mem_usage(df)
 
@@ -118,6 +94,7 @@ def try_read_df(file):
 def load_data(file):
     with st.spinner('Chargement de la base de données ⌛'):
         df = pd.read_csv(file, compression='gzip')
+
     with st.spinner('Optimisation de la mémoire ⌛'):
         return reduce_mem_usage(df)
 
@@ -125,8 +102,8 @@ def load_data(file):
 @st.cache(allow_output_mutation=True, show_spinner=False, ttl =3600)
 def try_read_desc(file):
     with st.spinner('Chargement des données ⌛'):
-        df_desc =  pd.read_csv(file, encoding= 'unicode_escape', usecols=['Row','Description'])
-        return reduce_mem_usage(df_desc)
+        df_desc = reduce_mem_usage(pd.read_csv(file, encoding= 'unicode_escape', usecols=['Row','Description']))
+        return df_desc
 # ----------------------------------------------------------------------------------------------------------------
 #@st.cache(allow_output_mutation=True, show_spinner=False)
 def get_explainer():
@@ -259,7 +236,7 @@ def streamlit_menu(example=1):
         # 1. as sidebar menu
         with st.sidebar:
             selected = option_menu(
-                menu_title="Home Credit",  # required
+                menu_title="HOME CREDIT",  # required
                 options=["Data Client", "Analyse", "Shapley", "Description",
                          #Rapport
                          ],  # required
@@ -356,8 +333,37 @@ def reduce_mem_usage(df):
         elif 'datetime' not in col_type.name:
             df[col] = df[col].astype('category')
 
-    end_mem = df.memory_usage().sum() / 1024 ** 2
+    #end_mem = df.memory_usage().sum() / 1024 ** 2
     #print('Memory usage after optimization is: {:.2f} MB'.format(end_mem))
     #print('Decreased by {:.1f}%'.format(100 * (start_mem - end_mem) / start_mem))
 
     return df
+
+def undummify(df, prefix_sep="_"):
+    cols2collapse = {
+        item.split(prefix_sep)[0]: (prefix_sep in item) for item in df.columns
+    }
+    series_list = []
+    for col, needs_to_collapse in cols2collapse.items():
+        if needs_to_collapse:
+            undummified = (
+                df.filter(like=col)
+                .idxmax(axis=1)
+                .apply(lambda x: x.split(prefix_sep, maxsplit=1)[1])
+                .rename(col)
+            )
+            series_list.append(undummified)
+        else:
+            series_list.append(df[col])
+    undummified_df = pd.concat(series_list, axis=1)
+    return undummified_df
+
+
+def funct_grid_option(df):
+    gb = GridOptionsBuilder.from_dataframe(df)
+
+    gb.configure_pagination()
+    gb.configure_side_bar()
+    gb.configure_default_column(groupable=True, value=True, enableRowGroup=True, aggFunc="sum", editable=True)
+    gridOptions = gb.build()
+    return gridOptions
