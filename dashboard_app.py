@@ -26,7 +26,7 @@ local_css(dirname+"style.css")
 pd.options.display.float_format = '{:,.2f}'.format
 
 #Image logo entreprise--------------------------------------------------------------------------------------------------
-image_logo = Image.open("Image/depenser.png")
+image_logo = Image.open("Image/home credit.jpg")
 #newsize = (464, 283)
 
 left, mid ,right = st.columns([1,1, 1])
@@ -40,7 +40,7 @@ with mid:
 st.markdown("<div id='dash'><h1>Dashboard  📈</h1></div>", unsafe_allow_html=True)
 
 #Importation des fichier data-------------------------------------------------------------------------------------------
-#file = dirname+r"db/df_train1.gz"
+#file = dirname+r"db/df_train1_all.gz"
 file = dirname+r"db/df_train1_2000.gz"
 file_desc = dirname+'db/HomeCredit_columns_description.csv'
 
@@ -158,7 +158,7 @@ y_pred = lgbm_clf.predict_proba(pred_client.iloc[:, 2:-2])
 
 #Prédiction via l'API FastAPI
 #with st.spinner('Chargement des données de FastAPI ⌛'):
- #   y_pred = get_predictions(pred_client.iloc[:, 2:-2])
+#    y_pred = get_predictions(pred_client.iloc[:, 2:-2])
 # Fin Requete via FASTAPI pour la prédiction client---------------------------------------------------------------------
 
 #Calculer le rique du prêt----------------------------------------------------------------------------------------------
@@ -178,9 +178,14 @@ if selected!='Description':
             donnee_sortie['CODE_GENDER'] = donnee_sortie['CODE_GENDER'].map({0: 'M', 1: 'F'})
             donnee_sortie['FLAG_OWN_CAR'] = donnee_sortie['FLAG_OWN_CAR'].map({0: 'N', 1: 'Y'})
             donnee_sortie['FLAG_OWN_REALTY'] = donnee_sortie['FLAG_OWN_REALTY'].map({0: 'Y', 1: 'N'})
-            df = donnee_sortie.T
-            df.columns = ['Data']
-            col_1.write(HTML(df.to_html(escape=False)))
+            donnee_sortie['Features'] = "Data"
+            df = donnee_sortie.set_index('Features').T
+            df=df.reset_index()
+            df=df.rename(columns={"index": "Features"})
+            #col_1.write(HTML(df.to_html(escape=False)))
+            with col_1:
+                gridOptions = funct_grid_option(df)
+                AgGrid(df,gridOptions=gridOptions, enable_enterprise_modules=True)
             gauge(col_3, col_6)
 
 #Fin Tableau client transposé-------------------------------------------------------------------------------------------
@@ -344,7 +349,10 @@ if selected == "Shapley":
 
         st.markdown("<div id='shapley'><h3>Description des variables Shapley</h3></div></br>",
                             unsafe_allow_html=True)
-        AgGrid(feature_importance[['Variable', 'Description']],height=500, width='100%')
+
+        gridOptions = funct_grid_option(feature_importance[['Variable', 'Description']])
+
+        AgGrid(feature_importance[['Variable', 'Description']],gridOptions=gridOptions, enable_enterprise_modules=True)
         #st.write(HTML(feature_importance[['Variable', 'Description']].to_html(index=False, escape=False)))
         st.markdown("</br>", unsafe_allow_html=True)
         #st.balloons()
