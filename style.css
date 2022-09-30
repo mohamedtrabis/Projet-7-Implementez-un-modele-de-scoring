@@ -1,5 +1,12 @@
 <style>
 
+.sidebar-content {
+                    padding-top: 30px;
+                }
+.main .block-container {
+                    padding-top: 30px;
+                }
+
 table {
 table-layout: fixed;
 font-size:10px !important;
@@ -11,7 +18,7 @@ th {
 font-family:monospace bold;
 border:1px dotted #6495ed;
 background-color:#EFF6FF;
-text-align:center;
+text-align:left;
 font-size:15px;
 font-weight: bold;
 }
